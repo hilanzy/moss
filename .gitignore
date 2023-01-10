@@ -1,0 +1,7 @@
+__pycache__/
+build/
+*.egg-info/
+.vscode/
+
+# Sphinx documentation
+docs/_build/
