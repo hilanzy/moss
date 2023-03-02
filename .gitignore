@@ -5,3 +5,6 @@ build/
 
 # Sphinx documentation
 docs/_build/
+
+# Logs
+logs/
