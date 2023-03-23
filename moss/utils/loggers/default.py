@@ -14,8 +14,11 @@
 """Default logger."""
 
 import logging
+import os
+from functools import partial
 from typing import Any, Callable, List, Mapping, Optional
 
+from moss.utils import paths
 from moss.utils.loggers import aggregators
 from moss.utils.loggers import asynchronous as async_logger
 from moss.utils.loggers import base, csv, filters, tensorboard, terminal
@@ -24,9 +27,8 @@ from moss.utils.loggers import base, csv, filters, tensorboard, terminal
 def make_default_logger(
   label: str,
   use_csv: bool = True,
-  csv_log_dir: Optional[str] = None,
   use_tb: bool = True,
-  tb_log_dir: Optional[str] = None,
+  log_dir: str = "logs",
   time_delta: float = 1.0,
   asynchronous: bool = False,
   print_fn: Optional[Callable[[str], None]] = None,
@@ -38,9 +40,8 @@ def make_default_logger(
   Args:
     label: Name to give to the logger.
     use_csv: Whether use csv logger to persist data.
-    csv_log_dir: Directory for persist csv data.
     use_tb: Whether use tensorboard logger to persist data.
-    tb_log_dir: Directory for persist tensorboard data.
+    log_dir: Directory for persist log data.
     time_delta: Time (in seconds) between logging events.
     asynchronous: Whether the write function should block or not.
     print_fn: How to print to terminal (defaults to print).
@@ -59,12 +60,10 @@ def make_default_logger(
   loggers: List[base.Logger] = [terminal_logger]
 
   if use_csv:
-    if csv_log_dir is None:
-      csv_log_dir = "./logs/csv"
-    loggers.append(csv.CSVLogger(csv_log_dir, label))
+    csv_log_dir = os.path.join(log_dir, "csv")
+    loggers.append(csv.CSVLogger(csv_log_dir, label, add_uid=False))
   if use_tb:
-    if tb_log_dir is None:
-      tb_log_dir = "./logs/tb"
+    tb_log_dir = os.path.join(log_dir, "tb")
     loggers.append(tensorboard.TFSummaryLogger(tb_log_dir, label))
 
   # Dispatch to all writers and filter Nones and by time.
@@ -75,3 +74,16 @@ def make_default_logger(
   logger = filters.TimeFilter(logger, time_delta)
 
   return logger
+
+
+def experiment_logger_factory(
+  project: str,
+  log_dir: str = "logs",
+  **kwargs: Any,
+) -> Callable[..., base.Logger]:
+  """Experiment logger factory."""
+  uid = paths.get_unique_id()
+  log_dir = os.path.join(log_dir, project, *uid)
+  logger_maker = partial(make_default_logger, log_dir=log_dir, **kwargs)
+
+  return logger_maker

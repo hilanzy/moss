@@ -29,6 +29,9 @@ from moss.utils.loggers.constant import ConstantLogger
 from moss.utils.loggers.csv import CSVLogger
 from moss.utils.loggers.dataframe import InMemoryLogger
 from moss.utils.loggers.default import (
+  experiment_logger_factory,  # pylint: disable=g-bad-import-order
+)
+from moss.utils.loggers.default import (
   make_default_logger,  # pylint: disable=g-bad-import-order
 )
 from moss.utils.loggers.filters import (
@@ -55,6 +58,7 @@ __all__ = [
   "ConstantLogger",
   "CSVLogger",
   "InMemoryLogger",
+  "experiment_logger_factory",
   "make_default_logger",
   "GatedFilter",
   "KeyFilter",
