@@ -115,6 +115,7 @@ class BasePredictor(Predictor):
       forward_start = time.time()
       rng, subrng = jax.random.split(rng)
       action, net_output = self._forward(self._params, batch_obs, subrng)
+      (action, net_output) = jax.device_get((action, net_output))
       forward_time = time.time() - forward_start
 
       for i, future in enumerate(futures):
