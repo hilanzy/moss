@@ -71,7 +71,7 @@ def make_default_logger(
   logger = filters.NoneFilter(logger)
   if asynchronous:
     logger = async_logger.AsyncLogger(logger)  # type: ignore
-  logger = filters.TimeFilter(logger, time_delta)
+  logger = aggregators.TimeAggregator(logger, time_delta)
 
   return logger
 

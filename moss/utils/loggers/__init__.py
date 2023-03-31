@@ -13,7 +13,7 @@
 # limitations under the License.
 """Moss loggers."""
 
-from moss.utils.loggers.aggregators import Dispatcher
+from moss.utils.loggers.aggregators import Dispatcher, TimeAggregator
 from moss.utils.loggers.asynchronous import AsyncLogger
 from moss.utils.loggers.base import (
   Logger,
@@ -45,6 +45,7 @@ from moss.utils.loggers.terminal import TerminalLogger
 from moss.utils.loggers.timestamp import TimestampLogger
 
 __all__ = [
+  "TimeAggregator",
   "Dispatcher",
   "AsyncLogger",
   "Logger",
