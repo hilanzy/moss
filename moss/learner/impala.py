@@ -36,7 +36,7 @@ class ImpalaLearner(BaseLearner):
     model_path: Optional[str] = None,
     learning_rate: float = 5e-4,
     discount: float = 0.95,
-    gae_lambda: float = 1.0,
+    gae_lambda: float = 0.95,
     seed: int = 42,
   ) -> None:
     """Init."""
@@ -77,8 +77,11 @@ class ImpalaLearner(BaseLearner):
     )
 
     # Critic loss.
+    vtrace_td_error_and_advantage_fn = partial(
+      rlax.vtrace_td_error_and_advantage, lambda_=self._gae_lambda
+    )
     vmap_vtrace_td_error_and_advantage_fn = jax.vmap(
-      rlax.vtrace_td_error_and_advantage, in_axes=1, out_axes=1
+      vtrace_td_error_and_advantage_fn, in_axes=1, out_axes=1
     )
     vtrace_returns = vmap_vtrace_td_error_and_advantage_fn(
       values_tm1, values_t, rewards_t, disconts_t, rhos
@@ -86,11 +89,14 @@ class ImpalaLearner(BaseLearner):
     critic_loss = 0.5 * jnp.mean(jnp.square(vtrace_returns.errors) * mask)
 
     # Policy gradien loss.
+    adv_mean = jnp.mean(vtrace_returns.pg_advantage)
+    adv_std = jnp.std(vtrace_returns.pg_advantage)
+    normal_adv = (vtrace_returns.pg_advantage - adv_mean) / adv_std
     vmap_policy_gradient_loss_fn = jax.vmap(
       rlax.policy_gradient_loss, in_axes=1, out_axes=0
     )
     pg_loss = vmap_policy_gradient_loss_fn(
-      learner_logits_t, actions_t, vtrace_returns.pg_advantage, mask
+      learner_logits_t, actions_t, normal_adv, mask
     )
     pg_loss = jnp.mean(pg_loss)
 
