@@ -35,7 +35,7 @@ class ImpalaLearner(BaseLearner):
     save_path: str,
     model_path: Optional[str] = None,
     learning_rate: float = 5e-4,
-    discount: float = 0.95,
+    discount: float = 0.99,
     gae_lambda: float = 0.95,
     seed: int = 42,
   ) -> None:
@@ -63,17 +63,17 @@ class ImpalaLearner(BaseLearner):
     mask = jnp.not_equal(data.step_type[:-1], int(StepType.FIRST))
     mask = mask.astype(jnp.float32)
 
-    actions_t, rewards_t = actions[1:], rewards[1:]
+    actions_tm1, rewards_t = actions[:-1], rewards[1:]
     disconts_t = disconts[1:]
-    behaviour_logits_t = behaviour_logits[1:]
-    learner_logits_t = learner_logits[1:]
+    behaviour_logits_tm1 = behaviour_logits[:-1]
+    learner_logits_tm1 = learner_logits[:-1]
     values_tm1, values_t = values[:-1], values[1:]
 
     # Importance sampling.
     rhos = rlax.categorical_importance_sampling_ratios(
-      pi_logits_t=learner_logits_t,
-      mu_logits_t=behaviour_logits_t,
-      a_t=actions_t
+      pi_logits_t=learner_logits_tm1,
+      mu_logits_t=behaviour_logits_tm1,
+      a_t=actions_tm1
     )
 
     # Critic loss.
@@ -89,24 +89,21 @@ class ImpalaLearner(BaseLearner):
     critic_loss = 0.5 * jnp.mean(jnp.square(vtrace_returns.errors) * mask)
 
     # Policy gradien loss.
-    adv_mean = jnp.mean(vtrace_returns.pg_advantage)
-    adv_std = jnp.std(vtrace_returns.pg_advantage)
-    normal_adv = (vtrace_returns.pg_advantage - adv_mean) / adv_std
     vmap_policy_gradient_loss_fn = jax.vmap(
       rlax.policy_gradient_loss, in_axes=1, out_axes=0
     )
     pg_loss = vmap_policy_gradient_loss_fn(
-      learner_logits_t, actions_t, normal_adv, mask
+      learner_logits_tm1, actions_tm1, vtrace_returns.pg_advantage, mask
     )
     pg_loss = jnp.mean(pg_loss)
 
     # Entropy loss.
     vmap_entropy_loss_fn = jax.vmap(rlax.entropy_loss, in_axes=1, out_axes=0)
-    entropy_loss = vmap_entropy_loss_fn(learner_logits_t, mask)
+    entropy_loss = vmap_entropy_loss_fn(learner_logits_tm1, mask)
     entropy_loss = jnp.mean(entropy_loss)
 
     # Total loss.
-    total_loss = pg_loss + 0.5 * critic_loss + 0.001 * entropy_loss
+    total_loss = pg_loss + 0.5 * critic_loss + 0.01 * entropy_loss
 
     # Metrics.
     metrics = {
