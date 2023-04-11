@@ -28,6 +28,15 @@ flags.DEFINE_integer("predict_batch_size", 32, "Predict batch size.")
 flags.DEFINE_integer("training_batch_size", 64, "Training batch size.")
 flags.DEFINE_string("model_path", None, "Restore model path.")
 flags.DEFINE_integer("save_interval", 500, "Save interval(by train steps).")
+flags.DEFINE_float("learning_rate", 5e-4, "Learning rate.")
+flags.DEFINE_float("gamma", 0.99, "Reward discount rate.")
+flags.DEFINE_float("gae_lambda", 0.95, "Gae lambda.")
+flags.DEFINE_float("rho_clip", 0.9, "Clip threshold for importance ratios.")
+flags.DEFINE_float(
+  "pg_rho_clip", 0.9, "Clip threshold for policy gradient importance ratios."
+)
+flags.DEFINE_float("critic_coef", 0.25, "Critic coefficient.")
+flags.DEFINE_float("entropy_coef", 0.01, "Entropy coefficient.")
 flags.DEFINE_integer("buffer_size", 2048, "Replay buffer size.")
 flags.DEFINE_string("lp_launch_type", "local_mp", "Launch type.")
 
@@ -115,6 +124,13 @@ def make_lp_program() -> Any:
       FLAGS.save_interval,
       save_path,
       FLAGS.model_path,
+      FLAGS.learning_rate,
+      FLAGS.gamma,
+      FLAGS.gae_lambda,
+      FLAGS.rho_clip,
+      FLAGS.pg_rho_clip,
+      FLAGS.critic_coef,
+      FLAGS.entropy_coef,
     )
     program.add_node(learner_node)
   return program

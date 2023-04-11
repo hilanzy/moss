@@ -37,6 +37,10 @@ class ImpalaLearner(BaseLearner):
     learning_rate: float = 5e-4,
     discount: float = 0.99,
     gae_lambda: float = 0.95,
+    clip_rho_threshold: float = 1.0,
+    clip_pg_rho_threshold: float = 1.0,
+    critic_coef: float = 0.5,
+    entropy_coef: float = 0.01,
     seed: int = 42,
   ) -> None:
     """Init."""
@@ -46,6 +50,10 @@ class ImpalaLearner(BaseLearner):
     )
     self._discount = discount
     self._gae_lambda = gae_lambda
+    self._clip_rho_threshold = clip_rho_threshold
+    self._clip_pg_rho_threshold = clip_pg_rho_threshold
+    self._critic_coef = critic_coef
+    self._entropy_coef = entropy_coef
     logging.info(jax.devices())
 
   def _loss(self, params: Params, data: Transition) -> Tuple[Array, LoggingData]:
@@ -78,7 +86,10 @@ class ImpalaLearner(BaseLearner):
 
     # Critic loss.
     vtrace_td_error_and_advantage_fn = partial(
-      rlax.vtrace_td_error_and_advantage, lambda_=self._gae_lambda
+      rlax.vtrace_td_error_and_advantage,
+      lambda_=self._gae_lambda,
+      clip_rho_threshold=self._clip_rho_threshold,
+      clip_pg_rho_threshold=self._clip_pg_rho_threshold
     )
     vmap_vtrace_td_error_and_advantage_fn = jax.vmap(
       vtrace_td_error_and_advantage_fn, in_axes=1, out_axes=1
@@ -86,7 +97,8 @@ class ImpalaLearner(BaseLearner):
     vtrace_returns = vmap_vtrace_td_error_and_advantage_fn(
       values_tm1, values_t, rewards_t, disconts_t, rhos
     )
-    critic_loss = 0.5 * jnp.mean(jnp.square(vtrace_returns.errors) * mask)
+    critic_loss = jnp.mean(jnp.square(vtrace_returns.errors) * mask)
+    critic_loss = self._critic_coef * critic_loss
 
     # Policy gradien loss.
     vmap_policy_gradient_loss_fn = jax.vmap(
@@ -100,10 +112,10 @@ class ImpalaLearner(BaseLearner):
     # Entropy loss.
     vmap_entropy_loss_fn = jax.vmap(rlax.entropy_loss, in_axes=1, out_axes=0)
     entropy_loss = vmap_entropy_loss_fn(learner_logits_tm1, mask)
-    entropy_loss = jnp.mean(entropy_loss)
+    entropy_loss = self._entropy_coef * jnp.mean(entropy_loss)
 
     # Total loss.
-    total_loss = pg_loss + 0.5 * critic_loss + 0.01 * entropy_loss
+    total_loss = pg_loss + critic_loss + entropy_loss
 
     # Metrics.
     metrics = {
