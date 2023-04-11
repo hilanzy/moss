@@ -54,7 +54,6 @@ class ImpalaLearner(BaseLearner):
     self._clip_pg_rho_threshold = clip_pg_rho_threshold
     self._critic_coef = critic_coef
     self._entropy_coef = entropy_coef
-    logging.info(jax.devices())
 
   def _loss(self, params: Params, data: Transition) -> Tuple[Array, LoggingData]:
     """Impala loss."""
