@@ -30,6 +30,9 @@ flags.DEFINE_integer("unroll_len", 16, "Unroll length.")
 flags.DEFINE_integer("predict_batch_size", 32, "Predict batch size.")
 flags.DEFINE_integer("training_batch_size", 64, "Training batch size.")
 flags.DEFINE_string("model_path", None, "Restore model path.")
+flags.DEFINE_integer(
+  "publish_interval", 1, "Publish params to predicotrs interval(by train steps)."
+)
 flags.DEFINE_integer("save_interval", 500, "Save interval(by train steps).")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate.")
 flags.DEFINE_float("gamma", 0.99, "Reward discount rate.")
@@ -128,6 +131,7 @@ def make_lp_program() -> Any:
       FLAGS.save_interval,
       save_path,
       FLAGS.model_path,
+      FLAGS.publish_interval,
       FLAGS.learning_rate,
       FLAGS.gamma,
       FLAGS.gae_lambda,

@@ -28,6 +28,7 @@ class BaseLearner(Learner):
     save_interval: int,
     save_path: str,
     model_path: Optional[str] = None,
+    publish_interval: int = 1,
     learning_rate: float = 5e-4,
     seed: int = 42,
   ) -> None:
@@ -46,6 +47,7 @@ class BaseLearner(Learner):
     self._opt_state = self._optmizer.init(self._params)
     self._save_intelval = save_interval
     self._save_fn = partial(self._save_model, save_path=save_path)
+    self._publish_interval = publish_interval
     logging.info(jax.devices())
 
   def _init_params(self, seed: int) -> Params:
@@ -102,15 +104,17 @@ class BaseLearner(Learner):
       self._params, self._opt_state, metrics = self._train_step(
         self._params, self._opt_state, tarinig_data
       )
+      train_steps += 1
       training_step_time = time.time() - start_training_time
 
-      train_steps += 1
+      publish_params_start = time.time()
+      if train_steps % self._publish_interval == 0:
+        self._publish_params(self._params)
+      publish_params_time = time.time() - publish_params_start
+
       if train_steps % self._save_intelval == 0:
         self._save_fn(params=self._params)
 
-      publish_params_start = time.time()
-      self._publish_params(self._params)
-      publish_params_time = time.time() - publish_params_start
       logs.update(
         {
           "time/sample data": sample_data_time,
