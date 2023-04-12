@@ -107,11 +107,15 @@ class BaseLearner(Learner):
       train_steps += 1
       if train_steps % self._save_intelval == 0:
         self._save_fn(params=self._params)
+
+      publish_params_start = time.time()
       self._publish_params(self._params)
+      publish_params_time = time.time() - publish_params_start
       logs.update(
         {
           "time/sample data": sample_data_time,
           "time/training step": training_step_time,
+          "time/publish params": publish_params_time,
           "train steps": train_steps,
           **metrics,
         }
