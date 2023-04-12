@@ -19,11 +19,14 @@ from moss.utils.paths import get_unique_id
 
 flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
 flags.DEFINE_integer("stack_num", 1, "Stack nums.")
+flags.DEFINE_bool(
+  "use_orthogonal", True, "Use orthogonal to initialization params weight."
+)
 flags.DEFINE_integer("num_envs", 32, "Num of envs.")
 flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
 flags.DEFINE_integer("num_actors", 16, "Num of actors.")
 flags.DEFINE_integer("num_predictors", 4, "Num of predictors.")
-flags.DEFINE_integer("unroll_len", 25, "Unroll length.")
+flags.DEFINE_integer("unroll_len", 16, "Unroll length.")
 flags.DEFINE_integer("predict_batch_size", 32, "Predict batch size.")
 flags.DEFINE_integer("training_batch_size", 64, "Training batch size.")
 flags.DEFINE_string("model_path", None, "Restore model path.")
@@ -48,6 +51,7 @@ def make_lp_program() -> Any:
 
   (exp_uid,) = get_unique_id()
   task_id = FLAGS.task_id
+  use_orthogonal = FLAGS.use_orthogonal
   stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
   num_threads = FLAGS.num_threads
@@ -63,7 +67,7 @@ def make_lp_program() -> Any:
 
   def network_maker() -> SimpleNet:
     """Network maker."""
-    return SimpleNet("torso", obs_sepc, action_sepc)
+    return SimpleNet(obs_sepc, action_sepc, use_orthogonal)
 
   def env_maker() -> Environment:
     """Env maker."""

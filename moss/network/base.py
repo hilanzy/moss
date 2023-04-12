@@ -15,17 +15,17 @@ class SimpleNet(Network):
 
   def __init__(
     self,
-    task: str,
     obs_sepc: Any,
     action_sepc: Any,
+    use_orthogonal: bool = True,
   ):
     """Init."""
     super().__init__()
-    self._task = task
     self._obs_sepc = obs_sepc
     self._action_sepc = action_sepc
+    action_nums = action_sepc.num_values
     self._net = hk.without_apply_rng(
-      hk.transform(lambda x: AtariConv(action_sepc.num_values)(x))
+      hk.transform(lambda x: AtariConv(action_nums, use_orthogonal)(x))
     )
 
   def init_params(self, rng: KeyArray) -> Params:
