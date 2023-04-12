@@ -6,7 +6,6 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 import rlax
-from absl import logging
 
 from moss.core import Buffer, Network, Predictor
 from moss.learner.base import BaseLearner
