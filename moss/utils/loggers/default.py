@@ -18,7 +18,6 @@ import os
 from functools import partial
 from typing import Any, Callable, List, Mapping, Optional
 
-from moss.utils import paths
 from moss.utils.loggers import aggregators
 from moss.utils.loggers import asynchronous as async_logger
 from moss.utils.loggers import base, csv, filters, tensorboard, terminal
@@ -78,12 +77,11 @@ def make_default_logger(
 
 def experiment_logger_factory(
   project: str,
+  uid: str,
   log_dir: str = "logs",
   **kwargs: Any,
 ) -> Callable[..., base.Logger]:
   """Experiment logger factory."""
-  uid = paths.get_unique_id()
-  log_dir = os.path.join(log_dir, project, *uid)
+  log_dir = os.path.join(log_dir, project, uid)
   logger_maker = partial(make_default_logger, log_dir=log_dir, **kwargs)
-
   return logger_maker

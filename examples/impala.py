@@ -51,7 +51,6 @@ FLAGS = flags.FLAGS
 
 def make_lp_program() -> Any:
   """Make launchpad program."""
-
   (exp_uid,) = get_unique_id()
   task_id = FLAGS.task_id
   use_orthogonal = FLAGS.use_orthogonal
@@ -83,7 +82,7 @@ def make_lp_program() -> Any:
     return BaseAgent()
 
   logger_fn = experiment_logger_factory(
-    project=task_id, time_delta=2.0, print_fn=logging.info
+    project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
   )
 
   program = lp.Program("impala")
