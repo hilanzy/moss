@@ -7,7 +7,7 @@ check_install = python3 -c "import $(1)" || pip3 install $(1) --upgrade
 check_install_extra = python3 -c "import $(1)" || pip3 install $(2) --upgrade
 
 pytest:
-	$(call check_install, pytest)1
+	$(call check_install, pytest)
 	$(call check_install, pytest_cov)
 	$(call check_install, pytest_xdist)
 	pytest test --cov ${PROJECT_PATH} --durations 0 -v --cov-report term-missing --color=yes

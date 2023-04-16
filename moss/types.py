@@ -23,7 +23,6 @@ LoggingData = Dict[str, Any]
 
 class Transition(NamedTuple):
   """Transtion."""
-
   step_type: Any
   obs: Observation
   action: Action
