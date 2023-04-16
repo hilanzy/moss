@@ -44,6 +44,9 @@ flags.DEFINE_float(
 flags.DEFINE_float("critic_coef", 0.25, "Critic coefficient.")
 flags.DEFINE_float("entropy_coef", 0.01, "Entropy coefficient.")
 flags.DEFINE_integer("buffer_size", 2048, "Replay buffer size.")
+flags.DEFINE_string(
+  "buffer_mode", "FIFO", "Queue buffer mode(Support `FIFO` and `LIFO`)."
+)
 flags.DEFINE_string("lp_launch_type", "local_mp", "Launch type.")
 
 FLAGS = flags.FLAGS
@@ -90,6 +93,7 @@ def make_lp_program() -> Any:
     buffer_node = lp.CourierNode(
       QueueBuffer,
       FLAGS.buffer_size,
+      FLAGS.buffer_mode,
     )
     buffer = program.add_node(buffer_node)
 
