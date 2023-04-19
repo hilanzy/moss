@@ -1,4 +1,4 @@
-"""Impala example."""
+"""Atati impala example."""
 import os
 from typing import Any
 
