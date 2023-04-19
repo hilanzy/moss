@@ -19,11 +19,11 @@ from moss.utils.paths import get_unique_id
 
 flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
 flags.DEFINE_integer("stack_num", 1, "Stack nums.")
+flags.DEFINE_integer("num_envs", 32, "Num of envs.")
+flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
 flags.DEFINE_bool(
   "use_orthogonal", True, "Use orthogonal to initialization params weight."
 )
-flags.DEFINE_integer("num_envs", 32, "Num of envs.")
-flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
 flags.DEFINE_integer("num_actors", 16, "Num of actors.")
 flags.DEFINE_integer("num_predictors", 4, "Num of predictors.")
 flags.DEFINE_integer("unroll_len", 16, "Unroll length.")
@@ -56,15 +56,16 @@ def make_lp_program() -> Any:
   """Make launchpad program."""
   (exp_uid,) = get_unique_id()
   task_id = FLAGS.task_id
-  use_orthogonal = FLAGS.use_orthogonal
   stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
   num_threads = FLAGS.num_threads
+
   dummy_env: Environment = envpool.make_dm(
     task_id, stack_num=stack_num, num_envs=1
   )
   obs_sepc: Any = dummy_env.observation_spec()
   action_sepc: Any = dummy_env.action_spec()
+  use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
   logging.info(f"Observation shape: {obs_sepc.obs.shape}")
