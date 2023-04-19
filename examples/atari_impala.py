@@ -36,7 +36,7 @@ flags.DEFINE_integer(
 flags.DEFINE_integer("save_interval", 500, "Save interval(by train steps).")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate.")
 flags.DEFINE_float("gamma", 0.99, "Reward discount rate.")
-flags.DEFINE_float("gae_lambda", 0.95, "Gae lambda.")
+flags.DEFINE_float("gae_lambda", 0.95, "GAE lambda.")
 flags.DEFINE_float("rho_clip", 0.9, "Clip threshold for importance ratios.")
 flags.DEFINE_float(
   "pg_rho_clip", 0.9, "Clip threshold for policy gradient importance ratios."
