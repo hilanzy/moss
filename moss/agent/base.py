@@ -39,7 +39,7 @@ class BaseAgent(Agent):
     """
     self._episode_steps += 1
     self._rewards += timestep.reward
-    obs = timestep.observation["obs"]
+    obs = timestep.observation.obs
     obs = jnp.array(obs)
     return obs
 
