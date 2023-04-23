@@ -12,3 +12,6 @@ checkpoints/
 
 # Logs
 logs/
+
+# Vizdoom
+_vizdoom/
