@@ -1,4 +1,4 @@
-"""Base Actor."""
+"""Base actor."""
 import collections
 import time
 from typing import Callable, Dict, List, Optional

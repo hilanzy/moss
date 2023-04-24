@@ -34,8 +34,8 @@ class BaseAgent(Agent):
 
     Return:
       obs: agent observation input.
-        Returns must be serializable Python object to ensure
-        that it can exchange data between launchpad's nodes.
+        Returns must be serializable Python object to ensure that it can
+        exchange data between launchpad's nodes.
     """
     self._episode_steps += 1
     self._rewards += timestep.reward
