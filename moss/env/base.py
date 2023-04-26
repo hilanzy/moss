@@ -69,3 +69,11 @@ class BaseEnv(Environment):
   @abc.abstractmethod
   def step(self, action: Any) -> Any:
     """Updates the environment."""
+
+  def send(self, action: Any) -> Any:
+    """Send action to low-level environment api."""
+    pass
+
+  def recv(self) -> Any:
+    """Receive result from low-level environment api."""
+    pass
