@@ -1,8 +1,7 @@
 """Vectorized environments."""
 from typing import Any, Callable, List
 
-from moss.env.base import BaseEnv, TimeStep
-from moss.env.worker import BaseEnvWorker, DummyWorker
+from moss.env import BaseEnv, BaseEnvWorker, DummyWorker, TimeStep
 
 
 class BaseVectorEnv(BaseEnv):
