@@ -2,8 +2,9 @@
 from typing import Any
 
 import jax.numpy as jnp
+from dm_env import TimeStep
 
-from moss.core import Agent, TimeStep
+from moss.core import Agent
 from moss.types import Array, LoggingData
 
 

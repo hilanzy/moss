@@ -2,6 +2,7 @@
 import abc
 from typing import Any, Tuple
 
+from moss.env.base import TimeStep
 from moss.types import (
   Array,
   KeyArray,
@@ -10,7 +11,6 @@ from moss.types import (
   Observation,
   OptState,
   Params,
-  TimeStep,
   Trajectory,
   Transition,
 )

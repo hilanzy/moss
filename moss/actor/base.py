@@ -7,9 +7,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from absl import logging
+from dm_env import TimeStep
 
 from moss.core import Actor, Agent, Buffer, Predictor
-from moss.types import Environment, TimeStep, Transition
+from moss.types import Environment, Transition
 from moss.utils.loggers import Logger
 
 

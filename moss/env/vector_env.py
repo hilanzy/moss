@@ -1,21 +1,20 @@
 """Vectorized environments."""
 from typing import Any, Callable, List
 
-from moss.env.base import BaseEnv
+from moss.env.base import BaseEnv, TimeStep
 from moss.env.worker import BaseEnvWorker, DummyWorker
-from moss.types import GenericTimeStep
 
 
 class BaseVectorEnv(BaseEnv):
   """Base vectorized environments.
 
   Provide a universal interface to support both vectorized and multi-agent
-  environment by repackage all the timesteps into `List[GenericTimeStep]`
+  environment by repackage all the timesteps into `List[TimeStep]`
   format.
 
   For example, for a vectorized and multi-agent environment, it will split
   the multi-agent timesteps for each environment by player id, then pack
-  these timesteps into a `GenericTimeStep` list.
+  these timesteps into a `TimeStep` list.
   """
 
   def __init__(
@@ -23,7 +22,7 @@ class BaseVectorEnv(BaseEnv):
     num_envs: int,
     env_maker: Callable[[], BaseEnv],
     worker_fn: Callable[[BaseEnv], BaseEnvWorker],
-    process_fn: Callable[[List], List[GenericTimeStep]],
+    process_fn: Callable[[List], List[TimeStep]],
     **kwargs: Any,
   ) -> None:
     """Init.
@@ -33,7 +32,7 @@ class BaseVectorEnv(BaseEnv):
       env_maker: Environment maker function.
       worker_fn: Environment worker function.
       process_fn: Function to package the return timestep of all environments
-        into `List[GenericTimeStep]` format.
+        into `List[TimeStep]` format.
       kwargs: Any other arguments.
     """
     self._num_envs = num_envs
@@ -45,18 +44,18 @@ class BaseVectorEnv(BaseEnv):
     if kwargs.get("action_spec") is not None:
       self.action_spec = kwargs["action_spec"]  # type: ignore
 
-  def reset(self) -> List[GenericTimeStep]:
+  def reset(self) -> List[TimeStep]:
     """Vectorized environments reset.
 
     Returns:
-      A `GenericTimeStep` list containing all timesteps(split by env_id and
-        player_id) of this vectorized multi-agent(maybe) environments.
+      A `TimeStep` list containing all timesteps(split by env_id and player_id)
+        of this vectorized multi-agent(maybe) environments.
     """
     timesteps = [worker.reset() for worker in self._workers]
     generic_timestep = self._process_fn(timesteps)
     return generic_timestep
 
-  def step(self, actions: Any) -> List[GenericTimeStep]:
+  def step(self, actions: Any) -> List[TimeStep]:
     """Vectorized environments step.
 
     Args:
@@ -64,7 +63,7 @@ class BaseVectorEnv(BaseEnv):
       corresponding to `action_spec()`.
 
     Returns:
-      A `GenericTimeStep` list containing:
+      A `TimeStep` list containing:
         All timesteps(split by env_id and player_id) of this vectorized
           multi-agent(maybe) environments.
     """
@@ -107,7 +106,7 @@ class DummyVectorEnv(BaseVectorEnv):
 
   def __init__(
     self, num_envs: int, env_maker: Callable[[], BaseEnv],
-    process_fn: Callable[[List], List[GenericTimeStep]], **kwargs: Any
+    process_fn: Callable[[List], List[TimeStep]], **kwargs: Any
   ) -> None:
     """Dummy vectorized environments wrapper."""
     super().__init__(num_envs, env_maker, DummyWorker, process_fn, **kwargs)
@@ -118,7 +117,7 @@ class EnvpoolVectorEnv(BaseVectorEnv):
 
   def __init__(
     self, env_maker: Callable[[], BaseEnv],
-    process_fn: Callable[[List], List[GenericTimeStep]], **kwargs: Any
+    process_fn: Callable[[List], List[TimeStep]], **kwargs: Any
   ) -> None:
     """Envpool vectorized environments warrper."""
     super().__init__(1, env_maker, DummyWorker, process_fn, **kwargs)

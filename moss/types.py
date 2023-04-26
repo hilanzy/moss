@@ -6,23 +6,8 @@ import haiku as hk
 import jax
 import numpy as np
 import optax
-from dm_env import Environment  # noqa: F401
-from dm_env import StepType  # noqa: F401
-from dm_env import TimeStep  # noqa: F401
+from dm_env import Environment, StepType  # noqa: F401
 from jax.random import KeyArray  # noqa: F401
-
-
-class GenericTimeStep(TimeStep):
-  """Generic timestep.
-
-  `GenericTimeStep` extend from `dm_env.TimeStep` and adds three attributes
-  (env_id, player_id, playr_info) to be more general for vectorized and
-  multi-agent environment.
-  """
-  env_id: Any
-  player_id: Any
-  player_info: Any
-
 
 Array = Union[np.ndarray, jax.Array]
 Params = Union[hk.Params, optax.Params]
