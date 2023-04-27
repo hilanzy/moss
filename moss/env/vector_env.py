@@ -8,10 +8,9 @@ class BaseVectorEnv(BaseEnv):
   """Base vectorized environments.
 
   Provide a universal interface to support both vectorized and multi-agent
-  environment by repackage all the timesteps into `List[TimeStep]`
-  format.
+  environment by repackage all the timesteps into `List[TimeStep]` format.
 
-  For example, for a vectorized and multi-agent environment, it will split
+  For example, for a vectorized and multi-agent environment, we will split
   the multi-agent timesteps for each environment by player id, then pack
   these timesteps into a `TimeStep` list.
   """
