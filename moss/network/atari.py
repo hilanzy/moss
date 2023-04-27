@@ -5,7 +5,7 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 
-from moss.types import Array, Observation
+from moss.types import AgentState, Array
 
 
 class AtariDense(hk.Module):
@@ -18,7 +18,7 @@ class AtariDense(hk.Module):
 
   def __call__(
     self,
-    obs: Observation,
+    state: AgentState,
   ) -> Tuple[Array, Array]:
     """Process a batch of observations."""
     torso = hk.Sequential(
@@ -41,8 +41,8 @@ class AtariDense(hk.Module):
        hk.Linear(1)]
     )
 
-    obs = obs / 255.
-    torso_output = torso(obs)
+    state = state / 255.
+    torso_output = torso(state)
     policy_logits = policy_net(torso_output)
     value = value_net(torso_output)
     value = jnp.squeeze(value, axis=-1)
@@ -69,7 +69,7 @@ class AtariConv(hk.Module):
 
   def __call__(
     self,
-    obs: Observation,
+    state: AgentState,
   ) -> Tuple[Array, Array]:
     """Process a batch of observations."""
     w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
@@ -121,8 +121,8 @@ class AtariConv(hk.Module):
       ]
     )
 
-    obs = obs / 255.
-    torso_output = torso(obs)
+    state = state / 255.
+    torso_output = torso(state)
     policy_logits = policy_net(torso_output)
     value = value_net(torso_output)
     value = jnp.squeeze(value, axis=-1)

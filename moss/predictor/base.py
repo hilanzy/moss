@@ -11,7 +11,7 @@ import jax.numpy as jnp
 from absl import logging
 
 from moss.core import Network, Params, Predictor
-from moss.types import Array, KeyArray, NetOutput, Observation
+from moss.types import AgentState, Array, KeyArray, NetOutput
 from moss.utils.loggers import Logger
 
 
@@ -47,10 +47,10 @@ class BasePredictor(Predictor):
     logging.info(jax.devices())
 
   @partial(jax.jit, static_argnums=0)
-  def _forward(self, params: Params, obs: Observation,
+  def _forward(self, params: Params, state: AgentState,
                rng: KeyArray) -> Tuple[Array, NetOutput]:
     """Forward."""
-    action, net_output = self._network.forward(params, obs, rng)
+    action, net_output = self._network.forward(params, state, rng)
     return action, net_output
 
   def _batch_request(self) -> Tuple[Array, List[Future]]:
@@ -85,14 +85,14 @@ class BasePredictor(Predictor):
       else:
         self._params = params
 
-  def inference(self, obs: Observation) -> int:
+  def inference(self, state: AgentState) -> int:
     """Inference."""
     with self._inference_mutex:
       self._resp_id += 1
       resp_id = self._resp_id
     future: Future = Future()
     self._results[resp_id] = future
-    self._requests.put((obs, future))
+    self._requests.put((state, future))
     return resp_id
 
   def result(self, id: int) -> Any:

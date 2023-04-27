@@ -1,15 +1,18 @@
 """Atati impala example."""
 import os
-from typing import Any
+from typing import Any, Callable, List
 
 import envpool
+import jax
 import launchpad as lp
 from absl import app, flags, logging
+from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
-from moss.actor.base import BaseActor
-from moss.agent.base import BaseAgent
+from moss.actor.vector import VectorActor
+from moss.agent.atari import AtariAgent
 from moss.buffer.queue import QueueBuffer
+from moss.env import EnvpoolVectorEnv, TimeStep
 from moss.learner.impala import ImpalaLearner
 from moss.network.base import SimpleNet
 from moss.predictor.base import BasePredictor
@@ -75,15 +78,44 @@ def make_lp_program() -> Any:
     """Network maker."""
     return SimpleNet(obs_sepc, action_sepc, use_orthogonal)
 
-  def env_maker() -> Environment:
+  def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
-    return envpool.make_dm(
-      task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
-    )
 
-  def agent_maker() -> BaseAgent:
+    def env_fn() -> Any:
+      """Env functuion."""
+      return envpool.make_dm(
+        task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
+      )
+
+    def process_fn(timesteps: List) -> Any:
+      """Timesteps process function."""
+
+      def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
+        """Split batch timestep by env id."""
+        size = batch.step_type.size
+        timesteps = [
+          jax.tree_util.tree_map(lambda x: x[i], batch)  # noqa: B023
+          for i in range(size)
+        ]
+        return timesteps
+
+      timesteps = split_batch_timestep(timesteps[0])
+      new_timesteps = []
+      for env_id, timestep in enumerate(timesteps):
+        new_timesteps.append(TimeStep(env_id, 0, None, *timestep))
+      return new_timesteps
+
+    return EnvpoolVectorEnv(env_fn, process_fn)
+
+  def agent_maker(predictor: BasePredictor) -> Callable:
     """Agent maker."""
-    return BaseAgent()
+
+    def agent_fn(player_info: Any) -> AtariAgent:
+      """Retuen a agent."""
+      del player_info
+      return AtariAgent(predictor)
+
+    return agent_fn
 
   logger_fn = experiment_logger_factory(
     project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
@@ -113,11 +145,10 @@ def make_lp_program() -> Any:
   with program.group("actor"):
     for i in range(FLAGS.num_actors):
       actor_node = lp.CourierNode(
-        BaseActor,
+        VectorActor,
         buffer,
-        agent_maker,
+        Deferred(agent_maker, predictors[i % FLAGS.num_predictors]),
         env_maker,
-        predictors[i % FLAGS.num_predictors],
         FLAGS.unroll_len,
         logger_fn,
       )
@@ -162,6 +193,8 @@ def main(_):
     "learner":
       PythonProcess(
         env={
+          # LD_LIBRARY_PATH for cudatoolkit install from conda.
+          "LD_LIBRARY_PATH": "${HOME}/miniconda3/envs/moss/lib",
           "CUDA_VISIBLE_DEVICES": "0",
           "XLA_PYTHON_CLIENT_PREALLOCATE": "false"
         }

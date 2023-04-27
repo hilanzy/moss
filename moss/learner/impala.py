@@ -59,7 +59,7 @@ class ImpalaLearner(BaseLearner):
     """Impala loss."""
     # Batch forward.
     batch_forward_fn = hk.BatchApply(partial(self._network.forward, params))
-    _, net_output = batch_forward_fn(data.obs, jax.random.PRNGKey(0))
+    _, net_output = batch_forward_fn(data.state, jax.random.PRNGKey(0))
     net_output: NetOutput
 
     actions, rewards = data.action, data.reward

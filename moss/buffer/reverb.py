@@ -67,7 +67,7 @@ class ReverbQueue(Buffer):
     for data in sample:
       transition = Transition(
         step_type=data.data[0],
-        obs=data.data[1],
+        state=data.data[1],
         action=data.data[2],
         reward=data.data[3],
         policy_logits=data.data[4],

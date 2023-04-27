@@ -4,13 +4,14 @@ from typing import Any, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
+  AgentState,
   Array,
   KeyArray,
   LoggingData,
   NetOutput,
-  Observation,
   OptState,
   Params,
+  Reward,
   Trajectory,
   Transition,
 )
@@ -36,12 +37,12 @@ class Agent(abc.ABC):
     """Reset agent."""
 
   @abc.abstractmethod
-  def step(self, timestep: TimeStep) -> Observation:
+  def step(self, timestep: TimeStep) -> Tuple[AgentState, Reward]:
     """Take step."""
 
   @abc.abstractmethod
-  def reward(self, timestep: TimeStep) -> Any:
-    """Reward function."""
+  def take_action(self, state: AgentState) -> Any:
+    """Take action."""
 
 
 class Buffer(abc.ABC):
@@ -90,7 +91,7 @@ class Network(abc.ABC):
     """Init network's params."""
 
   @abc.abstractmethod
-  def forward(self, params: Params, obs: Observation,
+  def forward(self, params: Params, state: AgentState,
               rng: KeyArray) -> Tuple[Array, NetOutput]:
     """Network forward."""
 
@@ -103,7 +104,7 @@ class Predictor(Worker):
     """Update params."""
 
   @abc.abstractmethod
-  def inference(self, obs: Observation) -> Any:
+  def inference(self, state: AgentState) -> Any:
     """Inference."""
 
   @abc.abstractmethod
