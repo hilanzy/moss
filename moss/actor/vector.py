@@ -47,7 +47,8 @@ class VectorActor(Actor):
     timesteps = envs.reset()
     while not self._num_trajs or num_trajs < self._num_trajs:
       actor_step_start = time.time()
-      states, rewards, responses, actions = [], [], [], []
+      states, rewards, responses = [], [], []
+      env_actions = collections.defaultdict(list)
       for timestep in timesteps:
         ep_id = (timestep.env_id, timestep.player_id)
         if ep_id not in agents.keys():
@@ -64,7 +65,7 @@ class VectorActor(Actor):
         timesteps, states, results, rewards
       ):
         ep_id = (timestep.env_id, timestep.player_id)
-        actions.append(action)
+        env_actions[timestep.env_id].append(action)
         transition = Transition(
           step_type=timestep.step_type,
           state=state,
@@ -94,7 +95,9 @@ class VectorActor(Actor):
           unroll_steps[ep_id] = 1
           num_trajs += 1
 
-      actions = np.stack([actions])
+      actions = {
+        env_id: np.stack(actions) for env_id, actions in env_actions.items()
+      }
       envs_step_start = time.time()
       timesteps = envs.step(actions)
       self._logger.write(

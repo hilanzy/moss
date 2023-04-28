@@ -67,7 +67,8 @@ class BaseVectorEnv(BaseEnv):
           multi-agent(maybe) environments.
     """
     timesteps = [
-      worker.step(action) for worker, action in zip(self._workers, actions)
+      worker.step(actions[env_id])
+      for env_id, worker in enumerate(self._workers)
     ]
     generic_timestep = self._process_fn(timesteps)
     return generic_timestep
