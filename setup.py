@@ -46,7 +46,7 @@ def get_extras_require() -> Dict[str, List[str]]:
       [
         "sphinx<4",
         "sphinx_rtd_theme",
-        "jinja2<3.1",
+        "jinja2<3.2",
         "sphinxcontrib-bibtex",
         "flake8",
         "flake8-bugbear",
