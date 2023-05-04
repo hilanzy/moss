@@ -87,7 +87,7 @@ def make_lp_program() -> Any:
         task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
       )
 
-    def process_fn(timesteps: List) -> Any:
+    def process_fn(timesteps: Any) -> Any:
       """Timesteps process function."""
 
       def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
@@ -99,7 +99,7 @@ def make_lp_program() -> Any:
         ]
         return timesteps
 
-      timesteps = split_batch_timestep(timesteps[0])
+      timesteps = split_batch_timestep(timesteps)
       new_timesteps = []
       for i, timestep in enumerate(timesteps):
         new_timesteps.append(TimeStep(0, i, None, *timestep))

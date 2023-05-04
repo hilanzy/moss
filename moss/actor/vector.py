@@ -9,7 +9,7 @@ import numpy as np
 from absl import logging
 
 from moss.core import Actor, Agent, Buffer
-from moss.env import BaseVectorEnv
+from moss.env import BaseVectorEnv, TimeStep
 from moss.types import Transition
 from moss.utils.loggers import Logger
 
@@ -44,11 +44,12 @@ class VectorActor(Actor):
                 List[Transition]] = collections.defaultdict(list)
     agents: Dict[Tuple[int, int], Agent] = {}
     envs = self._env_maker()
-    timesteps = envs.reset()
+    envs_timesteps = envs.reset()
     while not self._num_trajs or num_trajs < self._num_trajs:
       actor_step_start = time.time()
+      timesteps: List[TimeStep] = sum(envs_timesteps, [])
       states, rewards, responses = [], [], []
-      env_actions = collections.defaultdict(list)
+      envs_actions = collections.defaultdict(list)
       for timestep in timesteps:
         ep_id = (timestep.env_id, timestep.player_id)
         if ep_id not in agents.keys():
@@ -65,7 +66,7 @@ class VectorActor(Actor):
         timesteps, states, results, rewards
       ):
         ep_id = (timestep.env_id, timestep.player_id)
-        env_actions[timestep.env_id].append(action)
+        envs_actions[timestep.env_id].append(action)
         transition = Transition(
           step_type=timestep.step_type,
           state=state,
@@ -96,10 +97,10 @@ class VectorActor(Actor):
           num_trajs += 1
 
       actions = {
-        env_id: np.stack(actions) for env_id, actions in env_actions.items()
+        env_id: np.stack(actions) for env_id, actions in envs_actions.items()
       }
       envs_step_start = time.time()
-      timesteps = envs.step(actions)
+      envs_timesteps = envs.step(actions)
       self._logger.write(
         {
           "time/get result": get_result_time,
