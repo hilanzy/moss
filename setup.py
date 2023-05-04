@@ -44,7 +44,7 @@ def get_extras_require() -> Dict[str, List[str]]:
   req = {
     "dev":
       [
-        "sphinx<4",
+        "sphinx<8",
         "sphinx_rtd_theme",
         "jinja2<3.2",
         "sphinxcontrib-bibtex",
