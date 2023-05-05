@@ -1,5 +1,5 @@
 """Vectorized environments."""
-from typing import Any, Callable, List
+from typing import Any, Callable, Dict, List
 
 from moss.env.base import BaseEnv, TimeStep
 from moss.env.worker import BaseEnvWorker, DummyWorker
@@ -43,17 +43,20 @@ class BaseVectorEnv(BaseEnv):
     if kwargs.get("action_spec") is not None:
       self.action_spec = kwargs["action_spec"]  # type: ignore
 
-  def reset(self) -> List[List[TimeStep]]:
+  def reset(self) -> Dict[int, List[TimeStep]]:
     """Vectorized environments reset.
 
     Returns:
       A `TimeStep` list containing all timesteps(split by env_id and player_id)
         of this vectorized multi-agent(maybe) environments.
     """
-    timesteps = [self._process_fn(worker.reset()) for worker in self._workers]
-    return timesteps
+    timesteps_dict = {
+      env_id: self._process_fn(worker.reset())
+      for env_id, worker in enumerate(self._workers)
+    }
+    return timesteps_dict
 
-  def step(self, actions: Any) -> List[List[TimeStep]]:
+  def step(self, actions: Any) -> Dict[int, List[TimeStep]]:
     """Vectorized environments step.
 
     Args:
@@ -65,11 +68,11 @@ class BaseVectorEnv(BaseEnv):
         All timesteps(split by env_id and player_id) of this vectorized
           multi-agent(maybe) environments.
     """
-    timesteps = [
-      self._process_fn(worker.step(actions[env_id]))
+    timesteps_dict = {
+      env_id: self._process_fn(worker.step(actions[env_id]))
       for env_id, worker in enumerate(self._workers)
-    ]
-    return timesteps
+    }
+    return timesteps_dict
 
   def observation_spec(self) -> Any:
     """Defines the observations provided by the environment.
