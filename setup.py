@@ -30,6 +30,7 @@ def get_install_requires() -> List[str]:
 
   requirements = [
     "absl-py",
+    "envpool",
     "dm-env",
     "dm-tree",
     "numpy",
