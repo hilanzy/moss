@@ -1,0 +1,20 @@
+__pycache__/
+build/
+dist/
+*.egg-info/
+.vscode/
+
+# Sphinx documentation
+docs/_build/
+
+# Checkpoints
+checkpoints/
+
+# Logs
+logs/
+
+# Vizdoom
+_vizdoom/
+
+# git
+.git/
