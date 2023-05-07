@@ -65,10 +65,11 @@ def get_extras_require() -> Dict[str, List[str]]:
 
 
 setup(
-  name="moss",
+  name="moss-rl",
   version=get_version(),
   description="A Python library for Reinforcement Learning.",
   long_description=open("README.md", encoding="utf8").read(),
+  long_description_content_type="text/markdown",
   author="lanzhiyi",
   author_email="lanzhiy.mail@qq.com",
   url="https://github.com/hilanzy/moss",
