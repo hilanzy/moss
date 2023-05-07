@@ -30,8 +30,9 @@ class BaseVectorEnv(BaseEnv):
       num_envs: Num of vectorized environments.
       env_maker: Environment maker function.
       worker_fn: Environment worker function.
-      process_fn: Function to package the return timestep of all environments
-        into `List[TimeStep]` format.
+      process_fn: Function to split the timesteps returned by the environment
+        into single-agent timestep format and repackage them into
+        `List[TimeStep]` format.
       kwargs: Any other arguments.
     """
     self._num_envs = num_envs
@@ -47,8 +48,9 @@ class BaseVectorEnv(BaseEnv):
     """Vectorized environments reset.
 
     Returns:
-      A `TimeStep` list containing all timesteps(split by env_id and player_id)
-        of this vectorized multi-agent(maybe) environments.
+      A `Dict[int, List[TimeStep]]`:
+        Key: env_id.
+        Value: `List[TimeStep]` containing all player's timestep.
     """
     timesteps_dict = {
       env_id: self._process_fn(worker.reset())
@@ -64,9 +66,9 @@ class BaseVectorEnv(BaseEnv):
       corresponding to `action_spec()`.
 
     Returns:
-      A `TimeStep` list containing:
-        All timesteps(split by env_id and player_id) of this vectorized
-          multi-agent(maybe) environments.
+      A `Dict[int, List[TimeStep]]`:
+        Key: env_id.
+        Value: `List[TimeStep]` containing all player's timestep.
     """
     timesteps_dict = {
       env_id: self._process_fn(worker.step(actions[env_id]))
