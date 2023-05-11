@@ -81,7 +81,7 @@ def make_lp_program() -> Any:
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
 
-    def env_fn() -> Any:
+    def env_wrapper() -> Any:
       """Env functuion."""
       return envpool.make_dm(
         task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
@@ -105,17 +105,17 @@ def make_lp_program() -> Any:
         new_timesteps.append(TimeStep(0, i, None, *timestep))
       return new_timesteps
 
-    return EnvpoolVectorEnv(env_fn, process_fn)
+    return EnvpoolVectorEnv(env_wrapper, process_fn)
 
   def agent_maker(predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_fn(player_info: Any) -> AtariAgent:
+    def agent_wrapper(player_info: Any) -> AtariAgent:
       """Retuen a agent."""
       del player_info
       return AtariAgent(predictor)
 
-    return agent_fn
+    return agent_wrapper
 
   logger_fn = experiment_logger_factory(
     project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
@@ -193,8 +193,6 @@ def main(_):
     "learner":
       PythonProcess(
         env={
-          # LD_LIBRARY_PATH for cudatoolkit install from conda.
-          "LD_LIBRARY_PATH": "${HOME}/miniconda3/envs/moss/lib",
           "CUDA_VISIBLE_DEVICES": "0",
           "XLA_PYTHON_CLIENT_PREALLOCATE": "false"
         }
