@@ -57,6 +57,8 @@ def main(_):
     timestep = local_env.step(action)
 
     if timestep.last():
+      _, reward = agent.step(timestep)
+      total_reward += reward
       logging.info(f"Total reward: {total_reward}")
 
 
