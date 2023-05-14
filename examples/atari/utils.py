@@ -56,8 +56,9 @@ class LocalEnv(Environment):
 
   def render(self) -> None:
     """Render."""
-    obs = self._last_timestep.observation.obs[0][0]  # type: ignore
-    rgb_array = np.transpose(obs, axes=(1, 0))
+    obs = self._last_timestep.observation.obs[0]  # type: ignore
+    gray_array = np.transpose(obs, axes=(2, 1, 0))  # (height, width, channel)
+    rgb_array = np.concatenate([gray_array] * 3, axis=-1)
 
     if self._screen_size is None:
       width, height = rgb_array.shape[:2]
