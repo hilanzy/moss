@@ -12,7 +12,7 @@ from moss.agent.atari import AtariAgent
 from moss.network.base import SimpleNet
 from moss.predictor.base import BasePredictor
 from moss.types import Params
-from moss.utils.loggers import Logger, make_default_logger
+from moss.utils.loggers import TerminalLogger
 
 flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
 flags.DEFINE_string("model_path", None, "Restore model path.")
@@ -30,11 +30,7 @@ def main(_):
     """Network maker."""
     return SimpleNet(obs_sepc, action_sepc)
 
-  def logger_fn(**kwargs) -> Logger:
-    """Logger function."""
-    return make_default_logger(**kwargs, use_csv=False, use_tb=False)
-
-  predictor = BasePredictor(1, network_maker, logger_fn)
+  predictor = BasePredictor(1, network_maker, TerminalLogger)
   with open(FLAGS.model_path, mode="rb") as f:
     params: Params = pickle.load(f)
     predictor.update_params(params)
