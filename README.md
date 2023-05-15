@@ -1,4 +1,6 @@
-<img src="docs/_static/images/moss.jpg" width="60%">
+<div align="center">
+  <img src="docs/_static/images/moss.jpg" width="60%">
+</div>
 
 # Moss: A Python library for Reinforcement Learning
 
