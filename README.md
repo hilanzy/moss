@@ -41,5 +41,5 @@ If no error occurs, you have successfully installed Moss.
 
 This is an example of Impala to train Atari game(use [envpool](https://github.com/sail-sg/envpool)).
   ```bash
-  python examples/atari_impala.py --task_id Pong-v5
+  python examples/atari/impala.py --task_id Pong-v5 --learning_rate 1e-3
   ```
