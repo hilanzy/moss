@@ -23,12 +23,12 @@ FLAGS = flags.FLAGS
 def main(_):
   """Main."""
   local_env = LocalEnv(FLAGS.task_id)
-  obs_sepc = local_env.observation_spec()
-  action_sepc = local_env.action_spec()
+  obs_spec = local_env.observation_spec()
+  action_spec = local_env.action_spec()
 
   def network_maker() -> SimpleNet:
     """Network maker."""
-    return SimpleNet(obs_sepc, action_sepc)
+    return SimpleNet(obs_spec, action_spec)
 
   predictor = BasePredictor(1, network_maker, TerminalLogger)
   with open(FLAGS.model_path, mode="rb") as f:
