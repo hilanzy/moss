@@ -20,7 +20,7 @@ from moss.predictor.base import BasePredictor
 from moss.utils.loggers import experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
-flags.DEFINE_string("map_id", "D1_basic", "Task name.")
+flags.DEFINE_string("map_id", "D1_basic", "Map id.")
 flags.DEFINE_string(
   "cfg_path", "examples/vizdoom/maps/D1_basic.cfg", "Task config path."
 )
@@ -135,7 +135,7 @@ def make_lp_program() -> Any:
     """Agent maker."""
 
     def agent_wrapper(player_info: Any) -> AtariAgent:
-      """Retuen a agent."""
+      """Return a agent."""
       del player_info
       return AtariAgent(predictor)
 
