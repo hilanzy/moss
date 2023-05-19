@@ -66,23 +66,23 @@ def make_lp_program() -> Any:
   dummy_env: Environment = envpool.make_dm(
     task_id, stack_num=stack_num, num_envs=1
   )
-  obs_sepc: Any = dummy_env.observation_spec()
-  action_sepc: Any = dummy_env.action_spec()
+  obs_spec: Any = dummy_env.observation_spec()
+  action_spec: Any = dummy_env.action_spec()
   use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
-  logging.info(f"Observation shape: {obs_sepc.obs.shape}")
-  logging.info(f"Action space: {action_sepc.num_values}")
+  logging.info(f"Observation shape: {obs_spec.obs.shape}")
+  logging.info(f"Action space: {action_spec.num_values}")
 
   def network_maker() -> SimpleNet:
     """Network maker."""
-    return SimpleNet(obs_sepc, action_sepc, use_orthogonal)
+    return SimpleNet(obs_spec, action_spec, use_orthogonal)
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
 
     def env_wrapper() -> Any:
-      """Env functuion."""
+      """Env wrapper."""
       return envpool.make_dm(
         task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
       )
