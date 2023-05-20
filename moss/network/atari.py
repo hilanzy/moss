@@ -1,4 +1,4 @@
-"""Base network."""
+"""Atari network."""
 from typing import Tuple
 
 import haiku as hk
