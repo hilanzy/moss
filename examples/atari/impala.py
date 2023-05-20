@@ -14,7 +14,7 @@ from moss.agent.atari import AtariAgent
 from moss.buffer.queue import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
 from moss.learner.impala import ImpalaLearner
-from moss.network.base import SimpleNet
+from moss.network.base import AtariNet
 from moss.predictor.base import BasePredictor
 from moss.types import Environment
 from moss.utils.loggers import experiment_logger_factory
@@ -74,9 +74,9 @@ def make_lp_program() -> Any:
   logging.info(f"Observation shape: {obs_spec.obs.shape}")
   logging.info(f"Action space: {action_spec.num_values}")
 
-  def network_maker() -> SimpleNet:
+  def network_maker() -> AtariNet:
     """Network maker."""
-    return SimpleNet(obs_spec, action_spec, use_orthogonal)
+    return AtariNet(obs_spec, action_spec, use_orthogonal)
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
