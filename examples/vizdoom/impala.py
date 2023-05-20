@@ -1,26 +1,32 @@
 """Atati impala example."""
+import collections
 import os
 from typing import Any, Callable, List
 
-import envpool
 import jax
 import launchpad as lp
 from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
+from examples.vizdoom.utils import vizdoom_env_maker
 from moss.actor.vector import VectorActor
-from moss.agent.atari import AtariAgent
+from moss.agent.vizdoom import DoomAgent
 from moss.buffer.queue import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
 from moss.learner.impala import ImpalaLearner
-from moss.network.base import AtariNet
+from moss.network.base import DoomNet
 from moss.predictor.base import BasePredictor
-from moss.types import Environment
 from moss.utils.loggers import experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
-flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
+flags.DEFINE_string("map_id", "D1_basic", "Map id.")
+flags.DEFINE_string(
+  "cfg_path", "examples/vizdoom/maps/D1_basic.cfg", "Task config path."
+)
+flags.DEFINE_string(
+  "wad_path", "examples/vizdoom/maps/D1_basic.wad", "Map config path."
+)
 flags.DEFINE_integer("stack_num", 1, "Stack nums.")
 flags.DEFINE_integer("num_envs", 32, "Num of envs.")
 flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
@@ -58,33 +64,51 @@ FLAGS = flags.FLAGS
 def make_lp_program() -> Any:
   """Make launchpad program."""
   (exp_uid,) = get_unique_id()
-  task_id = FLAGS.task_id
+  map_id = FLAGS.map_id
+  cfg_path = FLAGS.cfg_path
+  wad_path = FLAGS.wad_path
   stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
   num_threads = FLAGS.num_threads
 
-  dummy_env: Environment = envpool.make_dm(
-    task_id, stack_num=stack_num, num_envs=1
+  dummy_env = vizdoom_env_maker(
+    map_id, 1, cfg_path, wad_path, stack_num=stack_num
   )
-  obs_spec: Any = dummy_env.observation_spec()
-  action_spec: Any = dummy_env.action_spec()
+
+  def action_spec_wrapper(env) -> Any:
+    """Action spec wrapper.
+
+    This function is to wrapper action space to dm action spec, to avoid
+      `action_spec()` bug(maybe).
+      See: https://github.com/sail-sg/envpool/issues/264
+    """
+    ActionSpec = collections.namedtuple("ActionSpec", ["num_values"])
+    return ActionSpec(env.spec.action_space.n)
+
+  obs_spec = dummy_env.observation_spec()
+  action_spec = action_spec_wrapper(dummy_env)
   use_orthogonal = FLAGS.use_orthogonal
 
-  logging.info(f"Task id: {task_id}")
+  logging.info(f"Map id: {map_id}")
   logging.info(f"Observation shape: {obs_spec.obs.shape}")
   logging.info(f"Action space: {action_spec.num_values}")
 
-  def network_maker() -> AtariNet:
+  def network_maker() -> DoomNet:
     """Network maker."""
-    return AtariNet(obs_spec, action_spec, use_orthogonal)
+    return DoomNet(obs_spec, action_spec, use_orthogonal)
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
 
     def env_wrapper() -> Any:
-      """Env wrapper."""
-      return envpool.make_dm(
-        task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
+      """Rnv function."""
+      return vizdoom_env_maker(
+        map_id,
+        num_envs,
+        cfg_path,
+        wad_path,
+        stack_num=stack_num,
+        num_threads=num_threads
       )
 
     def process_fn(timesteps: Any) -> Any:
@@ -110,15 +134,15 @@ def make_lp_program() -> Any:
   def agent_maker(predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_wrapper(player_info: Any) -> AtariAgent:
-      """Retuen a agent."""
+    def agent_wrapper(player_info: Any) -> DoomAgent:
+      """Return a agent."""
       del player_info
-      return AtariAgent(predictor)
+      return DoomAgent(predictor)
 
     return agent_wrapper
 
   logger_fn = experiment_logger_factory(
-    project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
+    project=map_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
   )
 
   program = lp.Program("impala")
@@ -155,7 +179,7 @@ def make_lp_program() -> Any:
       program.add_node(actor_node)
 
   with program.group("learner"):
-    save_path = os.path.join("checkpoints", task_id, exp_uid)
+    save_path = os.path.join("checkpoints", map_id, exp_uid)
     learner_node = lp.CourierNode(
       ImpalaLearner,
       buffer,
