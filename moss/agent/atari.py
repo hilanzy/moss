@@ -49,5 +49,4 @@ class AtariAgent(Agent):
   def take_action(self, state: AgentState) -> Any:
     """Take action."""
     resp_idx = self._predicotr.inference(state)
-    # response = lambda: self._predicotr.result(resp_idx)
     return lambda: self._predicotr.result(resp_idx)
