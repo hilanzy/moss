@@ -111,7 +111,7 @@ def make_lp_program() -> Any:
     """Agent maker."""
 
     def agent_wrapper(player_info: Any) -> AtariAgent:
-      """Retuen a agent."""
+      """Return a agent."""
       del player_info
       return AtariAgent(predictor)
 
