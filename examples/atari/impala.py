@@ -1,5 +1,6 @@
 """Atati impala example."""
 import os
+from functools import partial
 from typing import Any, Callable, List
 
 import envpool
@@ -9,12 +10,12 @@ from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
+from examples.atari.network import network_maker
 from moss.actor.vector import VectorActor
 from moss.agent.atari import AtariAgent
 from moss.buffer.queue import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
 from moss.learner.impala import ImpalaLearner
-from moss.network.base import AtariNet
 from moss.predictor.base import BasePredictor
 from moss.types import Environment
 from moss.utils.loggers import experiment_logger_factory
@@ -74,10 +75,6 @@ def make_lp_program() -> Any:
   logging.info(f"Observation shape: {obs_spec.obs.shape}")
   logging.info(f"Action space: {action_spec.num_values}")
 
-  def network_maker() -> AtariNet:
-    """Network maker."""
-    return AtariNet(obs_spec, action_spec, use_orthogonal)
-
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
 
@@ -136,7 +133,7 @@ def make_lp_program() -> Any:
       predictor_node = lp.CourierNode(
         BasePredictor,
         FLAGS.predict_batch_size,
-        network_maker,
+        partial(network_maker, obs_spec, action_spec, use_orthogonal),
         logger_fn,
       )
       predictor = program.add_node(predictor_node)
@@ -160,7 +157,7 @@ def make_lp_program() -> Any:
       ImpalaLearner,
       buffer,
       predictors,
-      network_maker,
+      partial(network_maker, obs_spec, action_spec, use_orthogonal),
       logger_fn,
       FLAGS.training_batch_size,
       FLAGS.save_interval,

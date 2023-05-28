@@ -1,15 +1,16 @@
 """Atari local run."""
 import os
 import pickle
+from functools import partial
 
 import jax
 import numpy as np
 from absl import app, flags, logging
 from dm_env import TimeStep
 
+from examples.atari.network import network_maker
 from examples.atari.utils import LocalEnv
 from moss.agent.atari import AtariAgent
-from moss.network.base import SimpleNet
 from moss.predictor.base import BasePredictor
 from moss.types import Params
 from moss.utils.loggers import TerminalLogger
@@ -26,11 +27,9 @@ def main(_):
   obs_spec = local_env.observation_spec()
   action_spec = local_env.action_spec()
 
-  def network_maker() -> SimpleNet:
-    """Network maker."""
-    return SimpleNet(obs_spec, action_spec)
-
-  predictor = BasePredictor(1, network_maker, TerminalLogger)
+  predictor = BasePredictor(
+    1, partial(network_maker, obs_spec, action_spec), TerminalLogger
+  )
   with open(FLAGS.model_path, mode="rb") as f:
     params: Params = pickle.load(f)
     predictor.update_params(params)

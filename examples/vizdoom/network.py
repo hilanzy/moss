@@ -16,10 +16,10 @@ from moss.network.value import DenseValue
 def network_maker(
   obs_spec: Any, action_spec: Any, use_orthogonal: bool = True
 ) -> Any:
-  """Atari network maker."""
+  """Doom network maker."""
   channel, height, width = obs_spec.obs.shape
-  atari_frame = CommonFeatureSet(
-    name="atari_frame",
+  doom_frame = CommonFeatureSet(
+    name="doom_frame",
     features={
       "frame":
         ImageFeature(
@@ -28,7 +28,7 @@ def network_maker(
     },
     encoder_net_maker=lambda: ImageFeatureEncoder("frame_encoder")
   )
-  feature_spec = [atari_frame]
+  feature_spec = [doom_frame]
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
   policy_net_maker = partial(
     DiscreteAction, "action", action_spec.num_values, use_orthogonal
