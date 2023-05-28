@@ -40,7 +40,8 @@ class AtariAgent(Agent):
         exchange data between launchpad's nodes.
     """
     obs = timestep.observation.obs
-    state = jnp.array(obs)
+    obs = jnp.transpose(obs, axes=(1, 2, 0))
+    state = {"atari_frame": {"frame": jnp.array(obs)}}
     reward = timestep.reward
     self._episode_steps += 1
     self._rewards += reward

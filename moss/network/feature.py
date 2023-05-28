@@ -3,6 +3,7 @@ from typing import Any, Callable, Optional, Tuple, Type
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 from dm_env.specs import Array as ArraySpec
 
 
@@ -12,9 +13,9 @@ class BaseFeature(ArraySpec):
   def __init__(
     self,
     shape: Tuple,
-    dtype: Type,
+    dtype: Type = np.float32,
     name: Optional[str] = None,
-    process_fn: Callable[..., Any] | None = None
+    process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     super().__init__(shape, dtype, name)
@@ -33,9 +34,9 @@ class ScalarFeature(BaseFeature):
 
   def __init__(
     self,
-    dtype: Type,
-    name: Optional[str] = None,
-    process_fn: Callable[..., Any] | None = None
+    dtype: Type = np.float32,
+    name: Optional[str] = "ScalarFeature",
+    process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     super().__init__((1,), dtype, name, process_fn)
@@ -47,9 +48,9 @@ class VectorFeature(BaseFeature):
   def __init__(
     self,
     length: int,
-    dtype: Type,
-    name: Optional[str] = None,
-    process_fn: Callable[..., Any] | None = None
+    dtype: Type = np.float32,
+    name: Optional[str] = "VectorFeature",
+    process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     super().__init__((length,), dtype, name, process_fn)
@@ -61,9 +62,9 @@ class OneHotFeature(BaseFeature):
   def __init__(
     self,
     num_classes: int,
-    dtype: Type,
-    name: str | None = None,
-    process_fn: Callable[..., Any] | None = None
+    dtype: Type = np.int8,
+    name: str | None = "OneHotFeature",
+    process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     super().__init__((num_classes,), dtype, name, process_fn)
@@ -92,8 +93,8 @@ class ImageFeature(BaseFeature):
     channel: int,
     data_format: str,
     dtype: Type,
-    name: Optional[str] = None,
-    process_fn: Callable[..., Any] | None = None
+    name: Optional[str] = "ImageFeature",
+    process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     if data_format == "NHWC":

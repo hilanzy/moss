@@ -55,26 +55,26 @@ class BasePredictor(Predictor):
 
   def _batch_request(self) -> Tuple[Array, List[Future]]:
     """Get batch request data."""
-    batch_obs: Any = []
-    futures: List = []
-    while len(batch_obs) < self._batch_size:
+    state_list: List[Any] = []
+    futures: List[Any] = []
+    while len(state_list) < self._batch_size:
       try:
         # The function of timeout is to ensure that there
         # is at least one vaild data in batch_obs.
-        timetout = 0.05 if len(batch_obs) > 0 else None
+        timetout = 0.05 if len(state_list) > 0 else None
         request = self._requests.get(timeout=timetout)
         obs, future = request
-        batch_obs.append(obs)
+        state_list.append(obs)
         futures.append(future)
       except queue.Empty:
         logging.info("Get batch request timeout.")
-        padding_len = self._batch_size - len(batch_obs)
-        padding = jnp.zeros_like(batch_obs[0])
+        padding_len = self._batch_size - len(state_list)
+        padding = jnp.zeros_like(state_list[0])
         for _ in range(padding_len):
-          batch_obs.append(padding)
+          state_list.append(padding)
         break
-    batch_obs = jnp.stack(batch_obs)
-    return batch_obs, futures
+    batch_state = jax.tree_util.tree_map(lambda *x: jnp.stack(x), *state_list)
+    return batch_state, futures
 
   def update_params(self, params: Params) -> None:
     """Update params."""
@@ -109,12 +109,12 @@ class BasePredictor(Predictor):
     rng = self._rng
     while True:
       get_batch_req_start = time.time()
-      batch_obs, futures = self._batch_request()
+      batch_state, futures = self._batch_request()
       get_batch_req_time = time.time() - get_batch_req_start
 
       forward_start = time.time()
-      rng, subrng = jax.random.split(rng)
-      action, net_output = self._forward(self._params, batch_obs, subrng)
+      rng, sub_rng = jax.random.split(rng)
+      action, net_output = self._forward(self._params, batch_state, sub_rng)
       (action, net_output) = jax.device_get((action, net_output))
       forward_time = time.time() - forward_start
 
