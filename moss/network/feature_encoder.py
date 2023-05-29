@@ -61,7 +61,7 @@ class ImageFeatureEncoder(hk.Module):
     use_orthogonal: bool = True
   ) -> None:
     """Init.
-    
+
     Args:
       name: Module name.
       use_resnet: Whether use resnet to encoder image feature.
