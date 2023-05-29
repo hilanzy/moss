@@ -10,16 +10,23 @@ from moss.types import Array
 class CommonEncoder(hk.Module):
   """Common encoder."""
 
-  def __init__(self, name: str, hidden_sizes: List[int]) -> None:
+  def __init__(
+    self,
+    name: str,
+    hidden_sizes: List[int],
+    use_orthogonal: bool = True
+  ) -> None:
     """Init."""
     super().__init__(name)
     self._hidden_sizes = hidden_sizes
+    self._use_orthogonal = use_orthogonal
 
   def __call__(self, inputs: Array) -> Any:
     """Call."""
     layers: List[Any] = []
+    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
     for hidden_size in self._hidden_sizes:
-      layers.append(hk.Linear(hidden_size))
+      layers.append(hk.Linear(hidden_size, w_init=w_init))
       layers.append(jax.nn.relu)
     common_net = hk.Sequential(layers)
     encoder_out = common_net(inputs)
@@ -29,22 +36,37 @@ class CommonEncoder(hk.Module):
 class ResidualBlock(hk.Module):
   """Residual block."""
 
-  def __init__(self, num_channels: int, name: Optional[str] = None) -> None:
+  def __init__(
+    self,
+    num_channels: int,
+    name: Optional[str] = None,
+    use_orthogonal: bool = True
+  ) -> None:
     """Init."""
     super().__init__(name=name)
     self._num_channels = num_channels
+    self._use_orthogonal = use_orthogonal
 
   def __call__(self, inputs: Array) -> Any:
     """Call."""
+    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
     main_branch = hk.Sequential(
       [
         jax.nn.relu,
         hk.Conv2D(
-          self._num_channels, kernel_shape=[3, 3], stride=[1, 1], padding="SAME"
+          self._num_channels,
+          kernel_shape=[3, 3],
+          stride=[1, 1],
+          w_init=w_init,
+          padding="SAME"
         ),
         jax.nn.relu,
         hk.Conv2D(
-          self._num_channels, kernel_shape=[3, 3], stride=[1, 1], padding="SAME"
+          self._num_channels,
+          kernel_shape=[3, 3],
+          stride=[1, 1],
+          w_init=w_init,
+          padding="SAME"
         ),
       ]
     )
@@ -73,33 +95,58 @@ class ImageFeatureEncoder(hk.Module):
 
   def __call__(self, inputs: Array) -> Any:
     """Call."""
+    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
     if self._use_resnet:
       encoder_out = inputs / 255.
       for i, (num_channels,
               num_blocks) in enumerate([(16, 2), (32, 2), (32, 2)]):
         conv = hk.Conv2D(
-          num_channels, kernel_shape=[3, 3], stride=[1, 1], padding="SAME"
+          num_channels,
+          kernel_shape=[3, 3],
+          stride=[1, 1],
+          w_init=w_init,
+          padding="SAME"
         )
         encoder_out = conv(encoder_out)  # type: ignore
         encoder_out = hk.max_pool(
           encoder_out,
           window_shape=[1, 3, 3, 1],
           strides=[1, 2, 2, 1],
-          padding="SAME",
+          padding="SAME"
         )
         for j in range(num_blocks):
-          block = ResidualBlock(num_channels, name="residual_{}_{}".format(i, j))
+          block = ResidualBlock(
+            num_channels, "residual_{}_{}".format(i, j), self._use_orthogonal
+          )
           encoder_out = block(encoder_out)
       encoder_out = hk.Flatten()(encoder_out)
     else:
       encoder = hk.Sequential(
         [
           lambda x: x / 255.,
-          hk.Conv2D(32, kernel_shape=[8, 8], stride=[4, 4], padding="VALID"),
+          hk.Conv2D(
+            32,
+            kernel_shape=[8, 8],
+            stride=[4, 4],
+            w_init=w_init,
+            padding="VALID"
+          ),
           jax.nn.relu,
-          hk.Conv2D(64, kernel_shape=[4, 4], stride=[2, 2], padding="VALID"),
+          hk.Conv2D(
+            64,
+            kernel_shape=[4, 4],
+            stride=[2, 2],
+            w_init=w_init,
+            padding="VALID"
+          ),
           jax.nn.relu,
-          hk.Conv2D(64, kernel_shape=[3, 3], stride=[1, 1], padding="VALID"),
+          hk.Conv2D(
+            64,
+            kernel_shape=[3, 3],
+            stride=[1, 1],
+            w_init=w_init,
+            padding="VALID"
+          ),
           jax.nn.relu,
           hk.Flatten(),
         ]
