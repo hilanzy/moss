@@ -60,7 +60,7 @@ class BasePredictor(Predictor):
     while len(state_list) < self._batch_size:
       try:
         # The function of timeout is to ensure that there
-        # is at least one vaild data in batch_obs.
+        # is at least one vaild data in state_list.
         timetout = 0.05 if len(state_list) > 0 else None
         request = self._requests.get(timeout=timetout)
         obs, future = request
@@ -69,7 +69,9 @@ class BasePredictor(Predictor):
       except queue.Empty:
         logging.info("Get batch request timeout.")
         padding_len = self._batch_size - len(state_list)
-        padding = jnp.zeros_like(state_list[0])
+        padding = jax.tree_util.tree_map(
+          lambda x: jnp.zeros_like(x), state_list[0]
+        )
         for _ in range(padding_len):
           state_list.append(padding)
         break
