@@ -1,5 +1,5 @@
 """Feature encoder."""
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import haiku as hk
 import jax
@@ -7,10 +7,29 @@ import jax
 from moss.types import Array
 
 
+class CommonEncoder(hk.Module):
+  """Common encoder."""
+
+  def __init__(self, name: str, hidden_sizes: List[int]) -> None:
+    """Init."""
+    super().__init__(name)
+    self._hidden_sizes = hidden_sizes
+
+  def __call__(self, inputs: Array) -> Any:
+    """Call."""
+    layers: List[Any] = []
+    for hidden_size in self._hidden_sizes:
+      layers.append(hk.Linear(hidden_size))
+      layers.append(jax.nn.relu)
+    common_net = hk.Sequential(layers)
+    encoder_out = common_net(inputs)
+    return encoder_out
+
+
 class ResidualBlock(hk.Module):
   """Residual block."""
 
-  def __init__(self, num_channels: int, name: Optional[str] = None):
+  def __init__(self, num_channels: int, name: Optional[str] = None) -> None:
     """Init."""
     super().__init__(name=name)
     self._num_channels = num_channels
@@ -36,11 +55,21 @@ class ImageFeatureEncoder(hk.Module):
   """Image featrue encoder."""
 
   def __init__(
-    self, name: Optional[str] = None, use_resnet: bool = False
+    self,
+    name: Optional[str] = None,
+    use_resnet: bool = False,
+    use_orthogonal: bool = True
   ) -> None:
-    """Init."""
+    """Init.
+    
+    Args:
+      name: Module name.
+      use_resnet: Whether use resnet to encoder image feature.
+      use_orthogonal: Whether use orthogonal to initialization params weight.
+    """
     super().__init__(name=name)
     self._use_resnet = use_resnet
+    self._use_orthogonal = use_orthogonal
 
   def __call__(self, inputs: Array) -> Any:
     """Call."""
