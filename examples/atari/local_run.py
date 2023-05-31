@@ -5,6 +5,7 @@ from functools import partial
 
 import jax
 import numpy as np
+import tree
 from absl import app, flags, logging
 from dm_env import TimeStep
 
@@ -47,6 +48,7 @@ def main(_):
     state, reward = agent.step(timestep)
     total_reward += reward
     sub_key, rng = jax.random.split(rng)
+    state = tree.map_structure(lambda x: np.expand_dims(x, 0), state)
     action, _ = predictor._forward(params, state, sub_key)
     action = np.array(action)
     timestep = local_env.step(action)

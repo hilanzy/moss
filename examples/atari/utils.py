@@ -1,11 +1,14 @@
 """Atari utils."""
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import envpool
 import numpy as np
 import pygame
+import tree
 from dm_env import Environment, TimeStep
 from pygame import Surface
+
+from moss.env import TimeStep
 
 
 class LocalEnv(Environment):
@@ -22,14 +25,25 @@ class LocalEnv(Environment):
     self._clock = pygame.time.Clock()
     self._last_timestep: Optional[TimeStep] = None
 
+  def _split_batch_timestep(self, batch: TimeStep) -> List[TimeStep]:
+    """Split batch timestep by env."""
+    size = batch.step_type.size
+    timesteps = [
+      tree.map_structure(lambda x: x[i], batch)  # noqa: B023
+      for i in range(size)
+    ]
+    return timesteps
+
   def reset(self) -> Any:
     """Env reset."""
-    self._last_timestep = self._env.reset()
+    timestep = self._env.reset()
+    self._last_timestep = self._split_batch_timestep(timestep)[0]
     return self._last_timestep
 
   def step(self, action) -> Any:
     """Env step."""
-    self._last_timestep = self._env.step(action)
+    timestep = self._env.step(action)
+    self._last_timestep = self._split_batch_timestep(timestep)[0]
     return self._last_timestep
 
   def observation_spec(self) -> Any:
@@ -56,7 +70,7 @@ class LocalEnv(Environment):
 
   def render(self) -> None:
     """Render."""
-    obs = self._last_timestep.observation.obs[0]  # type: ignore
+    obs = self._last_timestep.observation.obs  # type: ignore
     gray_array = np.transpose(obs, axes=(2, 1, 0))  # (height, width, channel)
     rgb_array = np.concatenate([gray_array] * 3, axis=-1)
 
