@@ -8,8 +8,6 @@ import tree
 from dm_env import Environment, TimeStep
 from pygame import Surface
 
-from moss.env import TimeStep
-
 
 class LocalEnv(Environment):
   """Atari local env wrapper."""
