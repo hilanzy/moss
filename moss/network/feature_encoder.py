@@ -40,11 +40,13 @@ class ResidualBlock(hk.Module):
     self,
     num_channels: int,
     name: Optional[str] = None,
+    data_format: str = "NHWC",
     use_orthogonal: bool = True
   ) -> None:
     """Init."""
     super().__init__(name=name)
     self._num_channels = num_channels
+    self._data_format = data_format
     self._use_orthogonal = use_orthogonal
 
   def __call__(self, inputs: Array) -> Any:
@@ -58,7 +60,8 @@ class ResidualBlock(hk.Module):
           kernel_shape=[3, 3],
           stride=[1, 1],
           w_init=w_init,
-          padding="SAME"
+          padding="SAME",
+          data_format=self._data_format
         ),
         jax.nn.relu,
         hk.Conv2D(
@@ -66,7 +69,8 @@ class ResidualBlock(hk.Module):
           kernel_shape=[3, 3],
           stride=[1, 1],
           w_init=w_init,
-          padding="SAME"
+          padding="SAME",
+          data_format=self._data_format
         ),
       ]
     )
@@ -79,6 +83,7 @@ class ImageFeatureEncoder(hk.Module):
   def __init__(
     self,
     name: Optional[str] = None,
+    data_format: str = "NHWC",
     use_resnet: bool = False,
     use_orthogonal: bool = True
   ) -> None:
@@ -86,10 +91,13 @@ class ImageFeatureEncoder(hk.Module):
 
     Args:
       name: Module name.
+      data_format: The data format of the input. Either `NHWC` or `NCHW`. By
+        default, `NHWC`.
       use_resnet: Whether use resnet to encoder image feature.
       use_orthogonal: Whether use orthogonal to initialization params weight.
     """
     super().__init__(name=name)
+    self._data_format = data_format
     self._use_resnet = use_resnet
     self._use_orthogonal = use_orthogonal
 
@@ -105,7 +113,8 @@ class ImageFeatureEncoder(hk.Module):
           kernel_shape=[3, 3],
           stride=[1, 1],
           w_init=w_init,
-          padding="SAME"
+          padding="SAME",
+          data_format=self._data_format
         )
         encoder_out = conv(encoder_out)  # type: ignore
         encoder_out = hk.max_pool(
@@ -129,7 +138,8 @@ class ImageFeatureEncoder(hk.Module):
             kernel_shape=[8, 8],
             stride=[4, 4],
             w_init=w_init,
-            padding="VALID"
+            padding="VALID",
+            data_format=self._data_format
           ),
           jax.nn.relu,
           hk.Conv2D(
@@ -137,7 +147,8 @@ class ImageFeatureEncoder(hk.Module):
             kernel_shape=[4, 4],
             stride=[2, 2],
             w_init=w_init,
-            padding="VALID"
+            padding="VALID",
+            data_format=self._data_format
           ),
           jax.nn.relu,
           hk.Conv2D(
@@ -145,7 +156,8 @@ class ImageFeatureEncoder(hk.Module):
             kernel_shape=[3, 3],
             stride=[1, 1],
             w_init=w_init,
-            padding="VALID"
+            padding="VALID",
+            data_format=self._data_format
           ),
           jax.nn.relu,
           hk.Flatten(),

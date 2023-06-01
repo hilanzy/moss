@@ -11,9 +11,20 @@ from moss.types import AgentState, LoggingData, Reward
 class AtariAgent(Agent):
   """Atari agent."""
 
-  def __init__(self, predictor: Predictor) -> None:
-    """Init."""
+  def __init__(self, predictor: Predictor, data_format: str = "NHWC") -> None:
+    """Init.
+
+    Args:
+      predictor: Predictor.
+      data_format: Atari image data format, must be `NHWC` or `NCHW`, default is
+        `NHWC`.
+    """
     self._predicotr = predictor
+    if data_format not in ["NHWC", "NCHW"]:
+      raise ValueError(
+        f"data_format must be `NHWC` or `NCHW`, but got {data_format}."
+      )
+    self._data_format = data_format
     self._episode_steps: int = 0
     self._rewards: float = 0
 
@@ -40,7 +51,8 @@ class AtariAgent(Agent):
         exchange data between launchpad's nodes.
     """
     obs = timestep.observation.obs
-    obs = jnp.transpose(obs, axes=(1, 2, 0))
+    if self._data_format == "NHWC":
+      obs = jnp.transpose(obs, axes=(1, 2, 0))
     state = {"atari_frame": {"frame": jnp.array(obs)}}
     reward = timestep.reward
     self._episode_steps += 1
