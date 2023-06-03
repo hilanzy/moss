@@ -105,7 +105,7 @@ class ImageFeatureEncoder(hk.Module):
     """Call."""
     w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
     if self._use_resnet:
-      encoder_out = inputs / 255.
+      encoder_out = inputs
       for i, (num_channels,
               num_blocks) in enumerate([(16, 2), (32, 2), (32, 2)]):
         conv = hk.Conv2D(
@@ -133,7 +133,6 @@ class ImageFeatureEncoder(hk.Module):
     else:
       encoder = hk.Sequential(
         [
-          lambda x: x / 255.,
           hk.Conv2D(
             32,
             kernel_shape=[8, 8],
