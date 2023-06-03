@@ -125,7 +125,8 @@ class ImageFeatureEncoder(hk.Module):
         )
         for j in range(num_blocks):
           block = ResidualBlock(
-            num_channels, "residual_{}_{}".format(i, j), self._use_orthogonal
+            num_channels, "residual_{}_{}".format(i, j), self._data_format,
+            self._use_orthogonal
           )
           encoder_out = block(encoder_out)
       encoder_out = hk.Flatten()(encoder_out)
