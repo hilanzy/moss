@@ -39,7 +39,7 @@ class CommonModule(hk.Module):
       encoder_net = encoder_net_maker()
       embedding = encoder_net(processor(feature))
       embeddings.append(embedding)
-    embeddings = jnp.concatenate(embeddings, axis=-1)
+    embeddings = jnp.concatenate(embeddings, axis=0)
 
     torso_net = self._torso_net_maker()
     torso_out = torso_net(embeddings)

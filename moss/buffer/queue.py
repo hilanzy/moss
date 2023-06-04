@@ -23,7 +23,7 @@ class QueueBuffer(Buffer):
     elif mode == "LIFO":
       self._queue: Queue[Trajectory] = LifoQueue(maxsize)  # type: ignore
     else:
-      raise ValueError(f"mode must be `FIFO` or `LIFO` bug got {mode}.")
+      raise ValueError(f"mode must be `FIFO` or `LIFO`, bug got `{mode}`.")
 
   def add(self, data: Trajectory) -> None:
     """Add trajectory data to replay buffer.

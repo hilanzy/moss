@@ -22,7 +22,7 @@ class AtariAgent(Agent):
     self._predicotr = predictor
     if data_format not in ["NHWC", "NCHW"]:
       raise ValueError(
-        f"data_format must be `NHWC` or `NCHW`, but got {data_format}."
+        f"data_format must be `NHWC` or `NCHW`, but got `{data_format}`."
       )
     self._data_format = data_format
     self._episode_steps: int = 0
