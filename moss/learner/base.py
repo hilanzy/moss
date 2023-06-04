@@ -28,6 +28,7 @@ class BaseLearner(Learner):
     save_interval: int,
     save_path: str,
     model_path: Optional[str] = None,
+    gradient_clip: Optional[float] = None,
     publish_interval: int = 1,
     learning_rate: float = 5e-4,
     seed: int = 42,
@@ -44,6 +45,10 @@ class BaseLearner(Learner):
       self._params = self._init_params(seed)
     self._publish_params(self._params)
     self._optmizer = optax.rmsprop(learning_rate, decay=0.99, eps=1e-7)
+    if gradient_clip is not None:
+      self._optmizer = optax.chain(
+        optax.clip_by_global_norm(gradient_clip), self._optmizer
+      )
     self._opt_state = self._optmizer.init(self._params)
     self._save_intelval = save_interval
     self._save_fn = partial(self._save_model, save_path=save_path)
