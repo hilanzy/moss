@@ -40,10 +40,15 @@ class CommonFeatureSet(object):
     """Generate a test value which conforms to this feature set."""
     return tree.map_structure(lambda spec: spec.generate_value(), self.spec)
 
-  def process(self, features: Dict) -> Array:
-    """Features process."""
-    feature_list = []
-    for feature in features.values():
-      feature_list.append(feature)
-    output = jnp.concatenate(feature_list, axis=-1)
+  def process(self, feature_inputs: Dict) -> Array:
+    """Feature inputs process."""
+    output_list = []
+    for name, inputs in feature_inputs.items():
+      feature = self._features.get(name)
+      if feature is None:
+        raise ValueError(
+          f"Got unexpected feature name `{name}` in `{self.name}` feature set."
+        )
+      output_list.append(feature.process(inputs))
+    output = jnp.concatenate(output_list, axis=0)
     return output
