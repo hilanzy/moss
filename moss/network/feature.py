@@ -103,6 +103,6 @@ class ImageFeature(BaseFeature):
       shape = (channel, height, width)
     else:
       raise ValueError(
-        f"data_format value must be `NHWC` or `NCHW`, but got {data_format}."
+        f"data_format value must be `NHWC` or `NCHW`, but got `{data_format}`."
       )
     super().__init__(shape, dtype, name, process_fn)
