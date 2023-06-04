@@ -133,7 +133,7 @@ def make_lp_program() -> Any:
       predictor_node = lp.CourierNode(
         BasePredictor,
         FLAGS.predict_batch_size,
-        partial(network_maker, obs_spec, action_spec, use_orthogonal),
+        partial(network_maker, obs_spec, action_spec, "NHWC", use_orthogonal),
         logger_fn,
       )
       predictor = program.add_node(predictor_node)
@@ -157,7 +157,7 @@ def make_lp_program() -> Any:
       ImpalaLearner,
       buffer,
       predictors,
-      partial(network_maker, obs_spec, action_spec, use_orthogonal),
+      partial(network_maker, obs_spec, action_spec, "NHWC", use_orthogonal),
       logger_fn,
       FLAGS.training_batch_size,
       FLAGS.save_interval,
