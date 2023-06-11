@@ -29,6 +29,7 @@ class BaseLearner(Learner):
     save_path: str,
     model_path: Optional[str] = None,
     gradient_clip: Optional[float] = None,
+    data_reuse: Optional[int] = None,
     publish_interval: int = 1,
     learning_rate: float = 5e-4,
     seed: int = 42,
@@ -52,6 +53,7 @@ class BaseLearner(Learner):
     self._opt_state = self._optmizer.init(self._params)
     self._save_intelval = save_interval
     self._save_fn = partial(self._save_model, save_path=save_path)
+    self._data_reuse = data_reuse or 1
     self._publish_interval = publish_interval
     logging.info(jax.devices())
 
@@ -106,11 +108,13 @@ class BaseLearner(Learner):
       sample_data_time = time.time() - start_sample_time
 
       start_training_time = time.time()
-      self._params, self._opt_state, metrics = self._train_step(
-        self._params, self._opt_state, tarinig_data
-      )
-      train_steps += 1
-      training_step_time = time.time() - start_training_time
+      for _ in range(self._data_reuse):
+        self._params, self._opt_state, metrics = self._train_step(
+          self._params, self._opt_state, tarinig_data
+        )
+        train_steps += 1
+        self._logger.write(metrics)
+      training_step_time = (time.time() - start_training_time) / self._data_reuse
 
       publish_params_start = time.time()
       if train_steps % self._publish_interval == 0:
@@ -126,7 +130,6 @@ class BaseLearner(Learner):
           "time/training step": training_step_time,
           "time/publish params": publish_params_time,
           "train steps": train_steps,
-          **metrics,
         }
       )
       self._logger.write(logs)

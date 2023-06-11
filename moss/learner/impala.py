@@ -34,6 +34,7 @@ class ImpalaLearner(BaseLearner):
     save_path: str,
     model_path: Optional[str] = None,
     gradient_clip: Optional[float] = None,
+    data_reuse: Optional[int] = None,
     publish_interval: int = 1,
     learning_rate: float = 5e-4,
     discount: float = 0.99,
@@ -47,7 +48,8 @@ class ImpalaLearner(BaseLearner):
     """Init."""
     super().__init__(
       buffer, predictors, network_maker, logger_fn, batch_size, save_interval,
-      save_path, model_path, gradient_clip, publish_interval, learning_rate, seed
+      save_path, model_path, gradient_clip, data_reuse, publish_interval,
+      learning_rate, seed
     )
     self._discount = discount
     self._gae_lambda = gae_lambda
