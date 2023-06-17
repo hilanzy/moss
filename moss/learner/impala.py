@@ -69,13 +69,13 @@ class ImpalaLearner(BaseLearner):
     actions, rewards = data.action, data.reward
     behaviour_logits = data.policy_logits
     learner_logits, values = net_output.policy_logits, net_output.value
-    disconts = jnp.ones_like(data.step_type) * self._discount
+    discount = jnp.ones_like(data.step_type) * self._discount
     # The step is uninteresting if we transitioned LAST -> FIRST.
     mask = jnp.not_equal(data.step_type[:-1], int(StepType.FIRST))
     mask = mask.astype(jnp.float32)
 
     actions_tm1, rewards_t = actions[:-1], rewards[1:]
-    disconts_t = disconts[1:]
+    discount_t = discount[1:]
     behaviour_logits_tm1 = behaviour_logits[:-1]
     learner_logits_tm1 = learner_logits[:-1]
     values_tm1, values_t = values[:-1], values[1:]
@@ -97,7 +97,7 @@ class ImpalaLearner(BaseLearner):
       vtrace_td_error_and_advantage_fn, in_axes=1, out_axes=1
     )
     vtrace_returns = vmap_vtrace_td_error_and_advantage_fn(
-      values_tm1, values_t, rewards_t, disconts_t, rhos
+      values_tm1, values_t, rewards_t, discount_t, rhos
     )
     critic_loss = jnp.mean(jnp.square(vtrace_returns.errors) * mask)
     critic_loss = self._critic_coef * critic_loss
