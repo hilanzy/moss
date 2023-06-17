@@ -5,6 +5,7 @@ from typing import Callable, List, Optional, Tuple
 import haiku as hk
 import jax
 import jax.numpy as jnp
+import distrax
 import rlax
 
 from moss.core import Buffer, Network, Predictor
@@ -80,10 +81,9 @@ class ImpalaLearner(BaseLearner):
     values_tm1, values_t = values[:-1], values[1:]
 
     # Importance sampling.
-    rhos = rlax.categorical_importance_sampling_ratios(
-      pi_logits_t=learner_logits_tm1,
-      mu_logits_t=behaviour_logits_tm1,
-      a_t=actions_tm1
+    rhos = distrax.importance_sampling_ratios(
+      distrax.Categorical(learner_logits_tm1),
+      distrax.Categorical(behaviour_logits_tm1), actions_tm1
     )
 
     # Critic loss.
