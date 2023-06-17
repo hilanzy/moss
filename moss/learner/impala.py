@@ -2,10 +2,10 @@
 from functools import partial
 from typing import Callable, List, Optional, Tuple
 
+import distrax
 import haiku as hk
 import jax
 import jax.numpy as jnp
-import distrax
 import rlax
 
 from moss.core import Buffer, Network, Predictor
