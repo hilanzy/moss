@@ -134,7 +134,7 @@ class PPOLearner(BaseLearner):
       )
     else:
       critic_loss = jnp.mean(unclipped_critic_loss * mask)
-    critic_loss = critic_loss * self._critic_coef
+    critic_loss = self._critic_coef * critic_loss
 
     # Entropy loss.
     vmap_entropy_loss_fn = jax.vmap(rlax.entropy_loss, in_axes=1, out_axes=0)
