@@ -44,7 +44,7 @@ flags.DEFINE_float("gae_lambda", 0.95, "GAE lambda.")
 flags.DEFINE_float(
   "pg_clip_epsilon", 0.1, "Epsilon for policy gradient clipping."
 )
-flags.DEFINE_float("value_clip_epsilon", 0.1, "Epsilon for value clipping.")
+flags.DEFINE_float("value_clip_epsilon", None, "Epsilon for value clipping.")
 flags.DEFINE_float("critic_coef", 0.25, "Critic coefficient.")
 flags.DEFINE_float("entropy_coef", 0.01, "Entropy coefficient.")
 flags.DEFINE_integer("buffer_size", 2048, "Replay buffer size.")
