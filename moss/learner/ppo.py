@@ -1,5 +1,4 @@
 """PPO learner."""
-import warnings
 from functools import partial
 from typing import Callable, List, Optional, Tuple
 
@@ -8,6 +7,7 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 import rlax
+from absl import logging
 
 from moss.core import Buffer, Network, Predictor
 from moss.learner.base import BaseLearner
@@ -59,11 +59,9 @@ class PPOLearner(BaseLearner):
     # FIXME: Fix fake behavior_values to supports value clip operation.
     self._value_clip_epsilon = value_clip_epsilon
     if value_clip_epsilon is not None:
-      warnings.warn(
+      logging.warning(
         "Currently, the operation of value clip is not supported, "
-        "and setting `value_clip_epsilon` will not have any effect.",
-        FutureWarning,
-        stacklevel=2
+        "and setting `value_clip_epsilon` will not have any effect."
       )
     self._critic_coef = critic_coef
     self._entropy_coef = entropy_coef
