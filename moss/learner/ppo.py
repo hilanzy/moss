@@ -7,7 +7,6 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 import rlax
-from absl import logging
 
 from moss.core import Buffer, Network, Predictor
 from moss.learner.base import BaseLearner
@@ -56,13 +55,7 @@ class PPOLearner(BaseLearner):
     self._discount = discount
     self._gae_lambda = gae_lambda
     self._pg_clip_epsilon = pg_clip_epsilon
-    # FIXME: Fix fake behavior_values to supports value clip operation.
     self._value_clip_epsilon = value_clip_epsilon
-    if value_clip_epsilon is not None:
-      logging.warning(
-        "Currently, the operation of value clip is not supported, "
-        "and setting `value_clip_epsilon` will not have any effect."
-      )
     self._critic_coef = critic_coef
     self._entropy_coef = entropy_coef
 
@@ -75,6 +68,7 @@ class PPOLearner(BaseLearner):
 
     actions, rewards = data.action, data.reward
     behaviour_logits = data.policy_logits
+    behaviour_values = data.behaviour_value
     learner_logits, values = net_output.policy_logits, net_output.value
     discount = jnp.ones_like(data.step_type) * self._discount
     # The step is uninteresting if we transitioned LAST -> FIRST.
@@ -85,7 +79,7 @@ class PPOLearner(BaseLearner):
     discount_t = discount[1:]
     behaviour_logits_tm1 = behaviour_logits[:-1]
     learner_logits_tm1 = learner_logits[:-1]
-    behavior_values_tm1 = values[:-1]  # FIXME: Fix this fake behavior_values.
+    behavior_values_tm1 = behaviour_values[:-1]
     values_tm1 = values[:-1]
 
     # Importance sampling.

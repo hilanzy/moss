@@ -71,6 +71,7 @@ class ReverbQueue(Buffer):
         action=data.data[2],
         reward=data.data[3],
         policy_logits=data.data[4],
+        behaviour_value=data.data[5],
       )
       datas.append(transition)
     stacked_data = tree_map(lambda *x: jnp.stack(x, axis=1), *datas)

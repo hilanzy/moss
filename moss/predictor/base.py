@@ -121,7 +121,8 @@ class BasePredictor(Predictor):
       forward_time = time.time() - forward_start
 
       for i, future in enumerate(futures):
-        future.set_result((action[i], net_output.policy_logits[i]))
+        result = (action[i], net_output.policy_logits[i], net_output.value[i])
+        future.set_result(result)
 
       metrics = {
         "time/get batch": get_batch_req_time,

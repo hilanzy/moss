@@ -28,6 +28,7 @@ class Transition(NamedTuple):
   action: Action
   reward: Reward
   policy_logits: Array
+  behaviour_value: Array
 
 
 Trajectory = Union[Transition, List[Transition]]

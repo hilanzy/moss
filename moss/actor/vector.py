@@ -68,7 +68,7 @@ class VectorActor(Actor):
           results[env_id].append(response())
       get_result_time = time.time() - get_result_start
       for env_id in timesteps_dict.keys():
-        for timestep, state, (action, logits), reward in zip(
+        for timestep, state, (action, logits, value), reward in zip(
           timesteps_dict[env_id], states_dict[env_id], results[env_id],
           rewards_dict[env_id]
         ):
@@ -78,8 +78,9 @@ class VectorActor(Actor):
             step_type=timestep.step_type,
             state=state,
             action=action,
-            policy_logits=logits,
             reward=reward,
+            policy_logits=logits,
+            behaviour_value=value,
           )
           trajs[ep_id].append(transition)
           unroll_steps[ep_id] += 1
