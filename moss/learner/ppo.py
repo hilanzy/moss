@@ -1,7 +1,8 @@
 """PPO learner."""
 from functools import partial
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
+import chex
 import distrax
 import haiku as hk
 import jax
@@ -59,6 +60,33 @@ class PPOLearner(BaseLearner):
     self._critic_coef = critic_coef
     self._entropy_coef = entropy_coef
 
+  def _entropy_loss(
+    self,
+    logits_t: Dict[str, Array],
+    w_t: Array,
+  ) -> Array:
+    """Calculates the entropy regularization loss.
+
+    See "Function Optimization using Connectionist RL Algorithms" by Williams.
+    (https://www.tandfonline.com/doi/abs/10.1080/09540099108946587)
+
+    Args:
+      logits_t: a sequence of unnormalized action preferences.
+      w_t: a per timestep weighting for the loss.
+
+    Returns:
+      Entropy loss.
+    """
+    for logits in logits_t.values():
+      chex.assert_rank(logits, 2)
+      chex.assert_type(logits, float)
+    chex.assert_rank(w_t, 1)
+    chex.assert_type(w_t, float)
+
+    distribution = self._network.action_spec.distribution(logits_t)
+    entropy_per_timestep = distribution.entropy()
+    return -jnp.mean(entropy_per_timestep * w_t)
+
   def _loss(self, params: Params, data: Transition) -> Tuple[Array, LoggingData]:
     """PPO loss."""
     # Batch forward.
@@ -75,17 +103,17 @@ class PPOLearner(BaseLearner):
     mask = jnp.not_equal(data.step_type[:-1], int(StepType.FIRST))
     mask = mask.astype(jnp.float32)
 
-    actions_tm1, rewards_t = actions[:-1], rewards[1:]
-    discount_t = discount[1:]
-    behaviour_logits_tm1 = behaviour_logits[:-1]
-    learner_logits_tm1 = learner_logits[:-1]
-    behavior_values_tm1 = behaviour_values[:-1]
-    values_tm1 = values[:-1]
+    actions_tm1 = jax.tree_map(lambda x: x[:-1], actions)
+    behaviour_logits_tm1 = jax.tree_map(lambda x: x[:-1], behaviour_logits)
+    learner_logits_tm1 = jax.tree_map(lambda x: x[:-1], learner_logits)
+    values_tm1, behavior_values_tm1 = values[:-1], behaviour_values[:-1]
+    rewards_t, discount_t = rewards[1:], discount[1:]
 
     # Importance sampling.
     rhos = distrax.importance_sampling_ratios(
-      distrax.Categorical(learner_logits_tm1),
-      distrax.Categorical(behaviour_logits_tm1), actions_tm1
+      self._network.action_spec.distribution(learner_logits_tm1),
+      self._network.action_spec.distribution(behaviour_logits_tm1),
+      actions_tm1,
     )
 
     # Computes GAE.
@@ -131,7 +159,7 @@ class PPOLearner(BaseLearner):
     critic_loss = self._critic_coef * critic_loss
 
     # Entropy loss.
-    vmap_entropy_loss_fn = jax.vmap(rlax.entropy_loss, in_axes=1, out_axes=0)
+    vmap_entropy_loss_fn = jax.vmap(self._entropy_loss, in_axes=1, out_axes=0)
     entropy_loss = vmap_entropy_loss_fn(learner_logits_tm1, mask)
     entropy_loss = self._entropy_coef * jnp.mean(entropy_loss)
 

@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 
 from moss.network.action import DiscreteAction
+from moss.network.action_spec import ActionSpec
 from moss.network.base import CommonNet
 from moss.network.feature import ImageFeature
 from moss.network.feature_encoder import ImageFeatureEncoder
@@ -21,6 +22,7 @@ def network_maker(
 ) -> Any:
   """Doom network maker."""
   channel, height, width = obs_spec.obs.shape
+  num_actions = action_spec.num_values
   doom_frame = CommonFeatureSet(
     name="doom_frame",
     features={
@@ -34,12 +36,15 @@ def network_maker(
       "frame_encoder", data_format, use_orthogonal=use_orthogonal
     )
   )
-  feature_spec = [doom_frame]
+  actions = {
+    "doom_action": DiscreteAction("doom_action", num_actions, use_orthogonal)
+  }
+
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
-  policy_net_maker = partial(
-    DiscreteAction, "action", action_spec.num_values, use_orthogonal
-  )
   value_net_maker = partial(DenseValue, "value", [512, 32], use_orthogonal)
   return CommonNet(
-    feature_spec, torso_net_maker, policy_net_maker, value_net_maker
+    feature_spec=[doom_frame],
+    action_spec=ActionSpec(actions),
+    torso_net_maker=torso_net_maker,
+    value_net_maker=value_net_maker,
   )
