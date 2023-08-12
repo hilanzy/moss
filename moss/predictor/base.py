@@ -48,7 +48,7 @@ class BasePredictor(Predictor):
 
   @partial(jax.jit, static_argnums=0)
   def _forward(self, params: Params, state: AgentState,
-               rng: KeyArray) -> Tuple[Array, NetOutput]:
+               rng: KeyArray) -> Tuple[Dict[str, Array], NetOutput]:
     """Forward."""
     action, net_output = self._network.forward(params, state, rng)
     return action, net_output
@@ -121,7 +121,12 @@ class BasePredictor(Predictor):
       forward_time = time.time() - forward_start
 
       for i, future in enumerate(futures):
-        result = (action[i], net_output.policy_logits[i], net_output.value[i])
+        action_i = jax.tree_map(lambda x: x[i], action)  # noqa: B023
+        policy_logits_i = jax.tree_map(
+          lambda x: x[i],  # noqa: B023
+          net_output.policy_logits
+        )
+        result = (action_i, policy_logits_i, net_output.value[i])
         future.set_result(result)
 
       metrics = {

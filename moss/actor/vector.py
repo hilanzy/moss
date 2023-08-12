@@ -57,7 +57,7 @@ class VectorActor(Actor):
           if ep_id not in agents.keys():
             agents[ep_id] = self._agent_maker(timestep.player_info)
           state, reward = agents[ep_id].step(timestep)
-          response = agents[ep_id].take_action(state)
+          response = agents[ep_id].inference(state)
           states_dict[env_id].append(state)
           rewards_dict[env_id].append(reward)
           responses_dict[env_id].append(response)
@@ -73,7 +73,8 @@ class VectorActor(Actor):
           rewards_dict[env_id]
         ):
           ep_id = (env_id, timestep.player_id)
-          actions_dict[env_id].append(action)
+          take_action = agents[ep_id].take_action(action)
+          actions_dict[env_id].append(take_action)
           transition = Transition(
             step_type=timestep.step_type,
             state=state,

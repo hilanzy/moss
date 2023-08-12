@@ -1,5 +1,5 @@
 """Doom agent."""
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 
 import jax.numpy as jnp
 
@@ -47,7 +47,11 @@ class DoomAgent(Agent):
     self._rewards += reward
     return state, reward
 
-  def take_action(self, state: AgentState) -> Any:
-    """Take action."""
+  def inference(self, state: AgentState) -> Any:
+    """Inference."""
     resp_idx = self._predicotr.inference(state)
     return lambda: self._predicotr.result(resp_idx)
+
+  def take_action(self, action: Dict[str, Any]) -> Any:
+    """Take action."""
+    return action["doom_action"]

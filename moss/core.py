@@ -1,6 +1,6 @@
 """Core interface."""
 import abc
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
@@ -41,7 +41,11 @@ class Agent(abc.ABC):
     """Take step."""
 
   @abc.abstractmethod
-  def take_action(self, state: AgentState) -> Any:
+  def inference(self, state: AgentState) -> Any:
+    """Inference."""
+
+  @abc.abstractmethod
+  def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
 
 
@@ -86,13 +90,18 @@ class Learner(Worker):
 class Network(abc.ABC):
   """Neural network interface."""
 
+  @property
+  @abc.abstractmethod
+  def action_spec(self) -> Any:
+    """Action spec."""
+
   @abc.abstractmethod
   def init_params(self, rng: KeyArray) -> Params:
     """Init network's params."""
 
   @abc.abstractmethod
   def forward(self, params: Params, state: AgentState,
-              rng: KeyArray) -> Tuple[Array, NetOutput]:
+              rng: KeyArray) -> Tuple[Dict[str, Array], NetOutput]:
     """Network forward."""
 
 
