@@ -9,8 +9,8 @@ from moss.network.feature import BaseFeature
 from moss.types import Array
 
 
-class CommonFeatureSet(object):
-  """Common feature set."""
+class FeatureSet(object):
+  """Feature set."""
 
   def __init__(
     self, name: str, features: Dict[str, BaseFeature],

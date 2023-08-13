@@ -1,5 +1,5 @@
 """Base network."""
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 import haiku as hk
 import jax.numpy as jnp
@@ -7,7 +7,7 @@ import tree
 
 from moss.core import Network
 from moss.network.action_spec import ActionSpec
-from moss.network.feature_set import CommonFeatureSet
+from moss.network.feature_spec import FeatureSpec
 from moss.types import AgentState, Array, KeyArray, NetOutput, Params
 
 
@@ -16,7 +16,7 @@ class CommonModule(hk.Module):
 
   def __init__(
     self,
-    feature_spec: List[CommonFeatureSet],
+    feature_spec: FeatureSpec,
     action_spec: ActionSpec,
     torso_net_maker: Callable[[], Any],
     value_net_maker: Callable[[], Any],
@@ -25,7 +25,8 @@ class CommonModule(hk.Module):
     super().__init__("common_module")
     self._feature_spec = feature_spec
     self._feature_encoder = {
-      sepc.name: (sepc.process, sepc.encoder_net_maker) for sepc in feature_spec
+      name: (feature_set.process, feature_set.encoder_net_maker)
+      for name, feature_set in feature_spec.feature_sets.items()
     }
     self._action_spec = action_spec
     self._torso_net_maker = torso_net_maker
@@ -59,7 +60,7 @@ class CommonNet(Network):
 
   def __init__(
     self,
-    feature_spec: List[CommonFeatureSet],
+    feature_spec: FeatureSpec,
     action_spec: ActionSpec,
     torso_net_maker: Callable[[], Any],
     value_net_maker: Callable[[], Any],
@@ -82,9 +83,7 @@ class CommonNet(Network):
 
   def init_params(self, rng: KeyArray) -> Params:
     """Init network's params."""
-    dummy_inputs = {
-      spec.name: spec.generate_value() for spec in self._feature_spec
-    }
+    dummy_inputs = self._feature_spec.generate_value()
     dummy_inputs = tree.map_structure(
       lambda x: jnp.expand_dims(x, 0), dummy_inputs
     )
