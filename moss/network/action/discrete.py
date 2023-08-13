@@ -1,38 +1,14 @@
 """Action decoder."""
-import abc
 from typing import Any, Type
 
 import distrax
 import haiku as hk
 import jax
 import numpy as np
-from distrax import DistributionLike
 from dm_env.specs import Array as ArraySpec
 
+from moss.network.action.base import Action
 from moss.types import Array, KeyArray
-
-
-class Action(abc.ABC):
-  """Action."""
-
-  @property
-  @abc.abstractmethod
-  def spec(self) -> ArraySpec:
-    """Action spec."""
-
-  @abc.abstractmethod
-  def decoder_net(self, inputs: Any) -> Any:
-    """Decoder network."""
-
-  @classmethod
-  @abc.abstractmethod
-  def distribution(cls, *args: Any, **kwargs: Any) -> DistributionLike:
-    """Action distribution."""
-
-  @classmethod
-  @abc.abstractmethod
-  def sample(cls, *args: Any, **kwargs: Any) -> Any:
-    """Sample action."""
 
 
 class DiscreteAction(Action):

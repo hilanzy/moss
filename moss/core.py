@@ -3,6 +3,7 @@ import abc
 from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
+from moss.network.action import ActionSpec
 from moss.types import (
   AgentState,
   Array,
@@ -92,7 +93,7 @@ class Network(abc.ABC):
 
   @property
   @abc.abstractmethod
-  def action_spec(self) -> Any:
+  def action_spec(self) -> ActionSpec:
     """Action spec."""
 
   @abc.abstractmethod

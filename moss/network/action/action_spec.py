@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 from distrax import DistributionLike
 
-from moss.network.action import Action
+from moss.network.action.base import Action
 from moss.types import Array, KeyArray
 
 ActionDistribution = collections.namedtuple(

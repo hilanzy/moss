@@ -6,8 +6,8 @@ import jax.numpy as jnp
 import tree
 
 from moss.core import Network
-from moss.network.action_spec import ActionSpec
-from moss.network.feature_spec import FeatureSpec
+from moss.network.action import ActionSpec
+from moss.network.feature import FeatureSpec
 from moss.types import AgentState, Array, KeyArray, NetOutput, Params
 
 
@@ -32,7 +32,7 @@ class CommonModule(hk.Module):
     self._torso_net_maker = torso_net_maker
     self._value_net_maker = value_net_maker
 
-  def __call__(self, features: Dict) -> Tuple[Array, Array]:
+  def __call__(self, features: Dict) -> Tuple[Dict[str, Array], Array]:
     """Call."""
     embeddings = {}
     for name, feature in features.items():

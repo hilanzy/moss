@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from dm_env.specs import Array as ArraySpec
 
-from moss.network.feature_set import FeatureSet
+from moss.network.feature.feature_set import FeatureSet
 
 
 class FeatureSpec(object):
