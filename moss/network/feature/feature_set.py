@@ -5,7 +5,7 @@ import haiku as hk
 import jax.numpy as jnp
 import tree
 
-from moss.network.feature import BaseFeature
+from moss.network.feature.feature import BaseFeature
 from moss.types import Array
 
 

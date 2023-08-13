@@ -6,8 +6,8 @@ import jax.numpy as jnp
 import tree
 
 from moss.core import Network
-from moss.network.action_spec import ActionSpec
-from moss.network.feature_spec import FeatureSpec
+from moss.network.action import ActionSpec
+from moss.network.feature import FeatureSpec
 from moss.types import AgentState, Array, KeyArray, NetOutput, Params
 
 
@@ -32,24 +32,23 @@ class CommonModule(hk.Module):
     self._torso_net_maker = torso_net_maker
     self._value_net_maker = value_net_maker
 
-  def __call__(self, features: Dict) -> Tuple[Array, Array]:
+  def __call__(self, features: Dict) -> Tuple[Dict[str, Array], Array]:
     """Call."""
-    embeddings = []
+    embeddings = {}
     for name, feature in features.items():
       processor, encoder_net_maker = self._feature_encoder[name]
       encoder_net = encoder_net_maker()
       embedding = encoder_net(processor(feature))
-      embeddings.append(embedding)
-    embeddings = jnp.concatenate(embeddings, axis=0)
+      embeddings[name] = embedding
 
     torso_net = self._torso_net_maker()
     torso_out = torso_net(embeddings)
 
     # policy logits
-    policy_logits = self._action_spec.action_net(torso_out)
-    value_net = self._value_net_maker()
+    policy_logits = self._action_spec.policy_net(torso_out)
 
     # value
+    value_net = self._value_net_maker()
     value = value_net(torso_out)
 
     return policy_logits, value

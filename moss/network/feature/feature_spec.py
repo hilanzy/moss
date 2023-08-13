@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from dm_env.specs import Array as ArraySpec
 
-from moss.network.feature_set import FeatureSet
+from moss.network.feature.feature_set import FeatureSet
 
 
 class FeatureSpec(object):
@@ -19,11 +19,10 @@ class FeatureSpec(object):
     return self._feature_sets
 
   @property
-  def spec(self) -> Dict[str, ArraySpec]:
+  def spec(self) -> Dict[str, Dict[str, ArraySpec]]:
     """Feature spec."""
     feature_spec = {
-      name: feature_set.spec
-      for name, feature_set in self._feature_sets.items()
+      name: feature_set.spec for name, feature_set in self._feature_sets.items()
     }
     return feature_spec
 

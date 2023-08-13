@@ -4,13 +4,14 @@ from typing import Any
 
 import numpy as np
 
-from moss.network.action import DiscreteAction
-from moss.network.action_spec import ActionSpec
+from moss.network.action import ActionSpec, DiscreteAction
 from moss.network.base import CommonNet
-from moss.network.feature import ImageFeature
-from moss.network.feature_encoder import ImageFeatureEncoder
-from moss.network.feature_set import FeatureSet
-from moss.network.feature_spec import FeatureSpec
+from moss.network.feature import (
+  FeatureSet,
+  FeatureSpec,
+  ImageFeature,
+  ImageFeatureEncoder,
+)
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
