@@ -1,4 +1,4 @@
-"""Action set."""
+"""Action spec."""
 import collections
 from typing import Any, Dict
 
@@ -25,12 +25,12 @@ class ActionSpec(object):
     """Action specs."""
     return self._spec
 
-  def action_net(self, inputs: Any) -> Any:
-    """Action network."""
-    action_outputs = {
+  def policy_net(self, inputs: Any) -> Any:
+    """Policy network."""
+    policy_outputs = {
       name: action.decoder_net(inputs) for name, action in self._actions.items()
     }
-    return action_outputs
+    return policy_outputs
 
   def distribution(self, logits: Dict[str, Any]) -> DistributionLike:
     """Action distribution."""
