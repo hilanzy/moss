@@ -10,6 +10,7 @@ from moss.network.base import CommonNet
 from moss.network.feature import ImageFeature
 from moss.network.feature_encoder import ImageFeatureEncoder
 from moss.network.feature_set import FeatureSet
+from moss.network.feature_spec import FeatureSpec
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
@@ -36,6 +37,9 @@ def network_maker(
       "frame_encoder", data_format, use_orthogonal=use_orthogonal
     )
   )
+  feature_sets = {
+    "atari_frame": atari_frame,
+  }
   actions = {
     "atari_action": DiscreteAction("atari_action", num_actions, use_orthogonal),
   }
@@ -43,7 +47,7 @@ def network_maker(
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
   value_net_maker = partial(DenseValue, "value", [512, 32], use_orthogonal)
   return CommonNet(
-    feature_spec=[atari_frame],
+    feature_spec=FeatureSpec(feature_sets),
     action_spec=ActionSpec(actions),
     torso_net_maker=torso_net_maker,
     value_net_maker=value_net_maker,
