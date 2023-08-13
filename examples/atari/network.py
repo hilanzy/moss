@@ -9,7 +9,7 @@ from moss.network.action_spec import ActionSpec
 from moss.network.base import CommonNet
 from moss.network.feature import ImageFeature
 from moss.network.feature_encoder import ImageFeatureEncoder
-from moss.network.feature_set import CommonFeatureSet
+from moss.network.feature_set import FeatureSet
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
@@ -23,7 +23,7 @@ def network_maker(
   """Atari network maker."""
   channel, height, width = obs_spec.obs.shape
   num_actions = action_spec.num_values
-  atari_frame = CommonFeatureSet(
+  atari_frame = FeatureSet(
     name="atari_frame",
     features={
       "frame":

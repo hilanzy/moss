@@ -9,7 +9,7 @@ from moss.network.action_spec import ActionSpec
 from moss.network.base import CommonNet
 from moss.network.feature import ImageFeature
 from moss.network.feature_encoder import ImageFeatureEncoder
-from moss.network.feature_set import CommonFeatureSet
+from moss.network.feature_set import FeatureSet
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
@@ -23,7 +23,7 @@ def network_maker(
   """Doom network maker."""
   channel, height, width = obs_spec.obs.shape
   num_actions = action_spec.num_values
-  doom_frame = CommonFeatureSet(
+  doom_frame = FeatureSet(
     name="doom_frame",
     features={
       "frame":

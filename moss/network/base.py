@@ -7,7 +7,7 @@ import tree
 
 from moss.core import Network
 from moss.network.action_spec import ActionSpec
-from moss.network.feature_set import CommonFeatureSet
+from moss.network.feature_set import FeatureSet
 from moss.types import AgentState, Array, KeyArray, NetOutput, Params
 
 
@@ -16,7 +16,7 @@ class CommonModule(hk.Module):
 
   def __init__(
     self,
-    feature_spec: List[CommonFeatureSet],
+    feature_spec: List[FeatureSet],
     action_spec: ActionSpec,
     torso_net_maker: Callable[[], Any],
     value_net_maker: Callable[[], Any],
@@ -59,7 +59,7 @@ class CommonNet(Network):
 
   def __init__(
     self,
-    feature_spec: List[CommonFeatureSet],
+    feature_spec: List[FeatureSet],
     action_spec: ActionSpec,
     torso_net_maker: Callable[[], Any],
     value_net_maker: Callable[[], Any],
