@@ -31,7 +31,7 @@ python examples/atari/impala.py --task_id Breakout-v5 --learning_rate 1e-3
 Training by executing following command:
 
 ```bash
-python examples/atari/impala.py --task_id Seaquest-v5 --entropy_coef 1e-4
+python examples/atari/impala.py --task_id Seaquest-v5 --entropy_coef 0.5
 ```
 
 **Reward curve**

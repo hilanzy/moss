@@ -50,8 +50,9 @@ def main(_):
     sub_key, rng = jax.random.split(rng)
     state = tree.map_structure(lambda x: np.expand_dims(x, 0), state)
     action, _ = predictor._forward(params, state, sub_key)
-    action = np.array(action)
-    timestep = local_env.step(action)
+    take_action = agent.take_action(action)
+    take_action = np.array(take_action)
+    timestep = local_env.step(take_action)
 
     if timestep.last():
       _, reward = agent.step(timestep)
