@@ -21,16 +21,14 @@ class ActionSpec(object):
     self._spec = {name: action.spec for name, action in actions.items()}
 
   @property
+  def actions(self) -> Dict[str, Action]:
+    """Actions."""
+    return self._actions
+
+  @property
   def action_spec(self) -> Any:
     """Action specs."""
     return self._spec
-
-  def policy_net(self, inputs: Any) -> Any:
-    """Policy network."""
-    policy_outputs = {
-      name: action.decoder_net(inputs) for name, action in self._actions.items()
-    }
-    return policy_outputs
 
   def distribution(self, logits: Dict[str, Any]) -> DistributionLike:
     """Action distribution."""
