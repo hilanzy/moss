@@ -42,7 +42,8 @@ def network_maker(
     "doom_frame": doom_frame,
   }
   actions = {
-    "doom_action": DiscreteAction("doom_action", num_actions, use_orthogonal)
+    "doom_action":
+      DiscreteAction("doom_action", [512], num_actions, use_orthogonal)
   }
 
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)

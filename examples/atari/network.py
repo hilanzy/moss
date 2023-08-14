@@ -42,7 +42,8 @@ def network_maker(
     "atari_frame": atari_frame,
   }
   actions = {
-    "atari_action": DiscreteAction("atari_action", num_actions, use_orthogonal),
+    "atari_action":
+      DiscreteAction("atari_action", [512], num_actions, use_orthogonal),
   }
 
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
