@@ -28,7 +28,7 @@ class DiscreteAction(Action):
       name: Action name.
       hidden_sizes: Hidden sizes of action decoder network.
       num_actions: Discrete action nums.
-      mask_on: Action mask on which input.
+      mask_on: Dependencies for action mask.
       use_orthogonal: Whether use orthogonal to initialization params weight.
         Following https://arxiv.org/abs/2006.05990, we set orthogonal
         initialization scale factor of 0.01 for last layer of policy network
@@ -87,7 +87,7 @@ class DiscreteAction(Action):
 
   @property
   def mask_on(self) -> Optional[str]:
-    """Action mask on."""
+    """Dependencies for action mask.."""
     return self._mask_on
 
   @property

@@ -14,7 +14,7 @@ class Action(abc.ABC):
   @property
   @abc.abstractmethod
   def mask_on(self) -> ArraySpec:
-    """Action mask on."""
+    """Dependencies for action mask.."""
 
   @property
   @abc.abstractmethod
