@@ -45,7 +45,10 @@ class CommonModule(hk.Module):
     torso_out = torso_net(embeddings)
 
     # policy logits
-    policy_logits = self._action_spec.policy_net(torso_out)
+    policy_logits = {}
+    for name, action in self._action_spec.actions.items():
+      action_mask = features.get(action.mask_on)
+      policy_logits[name] = action.policy_net(torso_out, action_mask)
 
     # value
     value_net = self._value_net_maker()
