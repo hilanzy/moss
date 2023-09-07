@@ -27,7 +27,7 @@ class Transition(NamedTuple):
   state: AgentState
   action: Action
   reward: Reward
-  policy_logits: Array
+  policy_logits: Dict[str, Array]
   behaviour_value: Array
 
 
