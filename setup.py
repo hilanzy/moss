@@ -14,7 +14,7 @@ def get_install_requires() -> List[str]:
   tensorflow = [
     "tensorflow==2.8.0",
     "tensorflow_probability==0.15.0",
-    "tensorflow_datasets==4.6.0",
+    "tensorflow_datasets==4.9.3",
     "dm-reverb==0.12.0",
     "dm-launchpad==0.5.2",
   ]
