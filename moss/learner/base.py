@@ -104,13 +104,13 @@ class BaseLearner(Learner):
     while True:
       logs = {}
       start_sample_time = time.time()
-      tarinig_data = self._buffer.sample(self._batch_size)
+      training_data = self._buffer.sample(self._batch_size)
       sample_data_time = time.time() - start_sample_time
 
       start_training_time = time.time()
       for _ in range(self._data_reuse):
         self._params, self._opt_state, metrics = self._train_step(
-          self._params, self._opt_state, tarinig_data
+          self._params, self._opt_state, training_data
         )
         train_steps += 1
         self._logger.write(metrics)
