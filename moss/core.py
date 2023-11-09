@@ -49,6 +49,10 @@ class Agent(abc.ABC):
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
 
+  @abc.abstractmethod
+  def add(self, transition: Transition) -> None:
+    """Add transition to buffer."""
+
 
 class Buffer(abc.ABC):
   """Replay buffer interface."""
