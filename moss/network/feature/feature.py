@@ -63,7 +63,7 @@ class OneHotFeature(BaseFeature):
     self,
     num_classes: int,
     dtype: Type = np.int8,
-    name: str | None = "OneHotFeature",
+    name: Optional[str] = "OneHotFeature",
     process_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
