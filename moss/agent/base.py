@@ -66,7 +66,7 @@ class BaseAgent(Agent):
         return
 
       # Add trajectory to buffer.
-      traj = self._trajectory[-self._unroll_length + 1:]
+      traj = self._trajectory[-(self._unroll_length + 1):]
       stacked_traj = jax.tree_util.tree_map(lambda *x: jnp.stack(x), *traj)
       self._buffer.add(stacked_traj)
       self._trajectory = self._trajectory[-self._unroll_length:]
