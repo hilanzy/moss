@@ -55,20 +55,25 @@ class BaseAgent(Agent):
     # When unroll_steps == unroll_length + 1 add trajectory to buffer.
     # Because bootstrap need more one step to calculate advantage function.
     if self._unroll_steps > self._unroll_length or is_last_step:
-      if is_last_step:
-        metrics = self.reset()
-        self._logger.write(metrics)
-
       # Episode end on first trajectory but length less than unroll_length + 1.
-      if len(self._trajectory) < self._unroll_length + 1:
+      if len(self._trajectory) <= self._unroll_length:
         logging.info(
           "Episode end on first trajectory "
           "but length less than unroll_length + 1."
         )
         self._trajectory = []
+        self._unroll_steps = 0
+        return
 
+      # Add trajectory to buffer.
       traj = self._trajectory[-self._unroll_length + 1:]
       stacked_traj = jax.tree_util.tree_map(lambda *x: jnp.stack(x), *traj)
       self._buffer.add(stacked_traj)
       self._trajectory = self._trajectory[-self._unroll_length:]
       self._unroll_steps = 1
+
+      if is_last_step:
+        self._trajectory = []
+        self._unroll_steps = 0
+        metrics = self.reset()
+        self._logger.write(metrics)
