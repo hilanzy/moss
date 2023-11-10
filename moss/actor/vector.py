@@ -29,7 +29,6 @@ class VectorActor(Actor):
     self._num_trajs = num_trajs
     self._logger_fn = logger_fn
     self._logger = logger_fn(label="Actor")
-    self._agent_logger = logger_fn(label="Agent")
     logging.info(jax.devices())
 
   def run(self) -> None:
