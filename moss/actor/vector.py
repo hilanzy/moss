@@ -7,7 +7,8 @@ import jax
 import numpy as np
 from absl import logging
 
-from moss.core import Actor, Agent
+from moss.agent.base import BaseAgent
+from moss.core import Actor
 from moss.env import BaseVectorEnv
 from moss.types import Transition
 from moss.utils.loggers import Logger
@@ -18,7 +19,7 @@ class VectorActor(Actor):
 
   def __init__(
     self,
-    agent_maker: Callable[..., Agent],
+    agent_maker: Callable[..., BaseAgent],
     env_maker: Callable[[], BaseVectorEnv],
     logger_fn: Callable[..., Logger],
     num_trajs: Optional[int] = None,
@@ -35,7 +36,7 @@ class VectorActor(Actor):
     """Run actor."""
     num_trajs = 0
     agent_logger = self._logger_fn(label="Agent")
-    agents: Dict[Tuple[int, int], Agent] = {}
+    agents: Dict[Tuple[int, int], BaseAgent] = {}
     envs = self._env_maker()
     timesteps_dict = envs.reset()
     while not self._num_trajs or num_trajs < self._num_trajs:
@@ -68,7 +69,6 @@ class VectorActor(Actor):
           ep_id = (env_id, timestep.player_id)
           take_action = agents[ep_id].take_action(action)
           actions_dict[env_id].append(take_action)
-          timestep.last()
           transition = Transition(
             step_type=timestep.step_type,
             state=state,
