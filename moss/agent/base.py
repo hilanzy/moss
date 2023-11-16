@@ -73,7 +73,5 @@ class BaseAgent(Agent):
       self._unroll_steps = 1
 
       if is_last_step:
-        self._trajectory = []
-        self._unroll_steps = 0
         metrics = self.reset()
         self._logger.write(metrics)
