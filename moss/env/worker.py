@@ -2,7 +2,7 @@
 import abc
 from typing import Any
 
-from moss.env import BaseEnv
+from moss.env.base import BaseEnv
 
 
 class BaseEnvWorker(abc.ABC):
