@@ -1,14 +1,32 @@
 """Base network."""
+import abc
 from typing import Any, Callable, Dict, Tuple
 
 import haiku as hk
 import jax.numpy as jnp
 import tree
 
-from moss.core import Network
 from moss.network.action import ActionSpec
 from moss.network.feature import FeatureSpec
 from moss.types import AgentState, Array, KeyArray, NetOutput, Params
+
+
+class Network(abc.ABC):
+  """Neural network interface."""
+
+  @property
+  @abc.abstractmethod
+  def action_spec(self) -> ActionSpec:
+    """Action spec."""
+
+  @abc.abstractmethod
+  def init_params(self, rng: KeyArray) -> Params:
+    """Init network's params."""
+
+  @abc.abstractmethod
+  def forward(self, params: Params, state: AgentState,
+              rng: KeyArray) -> Tuple[Dict[str, Array], NetOutput]:
+    """Network forward."""
 
 
 class CommonModule(hk.Module):

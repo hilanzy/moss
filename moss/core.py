@@ -3,13 +3,10 @@ import abc
 from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
-from moss.network.action import ActionSpec
 from moss.types import (
   AgentState,
   Array,
-  KeyArray,
   LoggingData,
-  NetOutput,
   OptState,
   Params,
   Reward,
@@ -90,24 +87,6 @@ class Learner(Worker):
   @abc.abstractmethod
   def _save_model(self, save_path: str, params: Params) -> None:
     """Save model."""
-
-
-class Network(abc.ABC):
-  """Neural network interface."""
-
-  @property
-  @abc.abstractmethod
-  def action_spec(self) -> ActionSpec:
-    """Action spec."""
-
-  @abc.abstractmethod
-  def init_params(self, rng: KeyArray) -> Params:
-    """Init network's params."""
-
-  @abc.abstractmethod
-  def forward(self, params: Params, state: AgentState,
-              rng: KeyArray) -> Tuple[Dict[str, Array], NetOutput]:
-    """Network forward."""
 
 
 class Predictor(Worker):

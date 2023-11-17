@@ -12,7 +12,7 @@ from dm_env import TimeStep
 from examples.atari.network import network_maker
 from examples.atari.utils import LocalEnv
 from moss.agent.atari import AtariAgent
-from moss.predictor.base import BasePredictor
+from moss.predictor import BasePredictor
 from moss.types import Params
 from moss.utils.loggers import TerminalLogger
 

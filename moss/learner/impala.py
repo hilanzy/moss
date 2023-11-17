@@ -9,8 +9,9 @@ import jax
 import jax.numpy as jnp
 import rlax
 
-from moss.core import Buffer, Network, Predictor
+from moss.core import Buffer, Predictor
 from moss.learner.base import BaseLearner
+from moss.network import Network
 from moss.types import (
   Array,
   LoggingData,
