@@ -3,23 +3,35 @@ from typing import Any, Dict, Tuple
 
 import jax.numpy as jnp
 
-from moss.core import Agent, Predictor
+from moss.agent.base import BaseAgent
+from moss.core import Buffer, Predictor
 from moss.env import TimeStep
 from moss.types import AgentState, LoggingData, Reward
+from moss.utils.loggers import Logger
 
 
-class AtariAgent(Agent):
+class AtariAgent(BaseAgent):
   """Atari agent."""
 
-  def __init__(self, predictor: Predictor, data_format: str = "NHWC") -> None:
+  def __init__(
+    self,
+    unroll_length: int,
+    buffer: Buffer,
+    predictor: Predictor,
+    logger: Logger,
+    data_format: str = "NHWC"
+  ) -> None:
     """Init.
 
     Args:
+      unroll_length: Unroll length.
+      buffer: Agent replay buffer.
       predictor: Predictor.
+      logger: Logger.
       data_format: Atari image data format, must be `NHWC` or `NCHW`, default is
         `NHWC`.
     """
-    self._predicotr = predictor
+    super().__init__("Atari", unroll_length, buffer, predictor, logger)
     if data_format not in ["NHWC", "NCHW"]:
       raise ValueError(
         f"data_format must be `NHWC` or `NCHW`, but got `{data_format}`."
@@ -36,8 +48,8 @@ class AtariAgent(Agent):
   def reset(self) -> LoggingData:
     """Reset agent."""
     metrics = {
-      "agent/episode steps": self._episode_steps,
-      "agent/total rewards": self._rewards
+      f"{self._name}/episode steps": self._episode_steps,
+      f"{self._name}/total rewards": self._rewards
     }
     self._init()
     return metrics
@@ -61,8 +73,8 @@ class AtariAgent(Agent):
 
   def inference(self, state: AgentState) -> Any:
     """Inference."""
-    resp_idx = self._predicotr.inference(state)
-    return lambda: self._predicotr.result(resp_idx)
+    resp_idx = self._predictor.inference(state)
+    return lambda: self._predictor.result(resp_idx)
 
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""

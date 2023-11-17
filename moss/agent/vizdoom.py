@@ -3,17 +3,22 @@ from typing import Any, Dict, Tuple
 
 import jax.numpy as jnp
 
-from moss.core import Agent, Predictor
+from moss.agent.base import BaseAgent
+from moss.core import Buffer, Predictor
 from moss.env import TimeStep
 from moss.types import AgentState, LoggingData, Reward
+from moss.utils.loggers import Logger
 
 
-class DoomAgent(Agent):
+class DoomAgent(BaseAgent):
   """Doom agent."""
 
-  def __init__(self, predictor: Predictor) -> None:
+  def __init__(
+    self, unroll_length: int, buffer: Buffer, predictor: Predictor,
+    logger: Logger
+  ) -> None:
     """Init."""
-    self._predicotr = predictor
+    super().__init__("Doom", unroll_length, buffer, predictor, logger)
     self._episode_steps: int = 0
     self._rewards: float = 0
 
@@ -25,8 +30,8 @@ class DoomAgent(Agent):
   def reset(self) -> LoggingData:
     """Reset agent."""
     metrics = {
-      "agent/episode steps": self._episode_steps,
-      "agent/total rewards": self._rewards
+      f"{self._name}/episode steps": self._episode_steps,
+      f"{self._name}/total rewards": self._rewards
     }
     self._init()
     return metrics
@@ -49,8 +54,8 @@ class DoomAgent(Agent):
 
   def inference(self, state: AgentState) -> Any:
     """Inference."""
-    resp_idx = self._predicotr.inference(state)
-    return lambda: self._predicotr.result(resp_idx)
+    resp_idx = self._predictor.inference(state)
+    return lambda: self._predictor.result(resp_idx)
 
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
