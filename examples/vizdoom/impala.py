@@ -18,7 +18,7 @@ from moss.buffer.queue import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
 from moss.learner.impala import ImpalaLearner
 from moss.predictor.base import BasePredictor
-from moss.utils.loggers import experiment_logger_factory
+from moss.utils.loggers import Logger, experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
 flags.DEFINE_string("map_id", "D1_basic", "Map id.")
@@ -71,6 +71,7 @@ def make_lp_program() -> Any:
   stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
   num_threads = FLAGS.num_threads
+  unroll_len = FLAGS.unroll_len
 
   dummy_env = vizdoom_env_maker(
     map_id, 1, cfg_path, wad_path, stack_num=stack_num
@@ -128,13 +129,13 @@ def make_lp_program() -> Any:
 
     return EnvpoolVectorEnv(env_wrapper, process_fn)
 
-  def agent_maker(predictor: BasePredictor) -> Callable:
+  def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_wrapper(player_info: Any) -> DoomAgent:
+    def agent_wrapper(player_info: Any, logger: Logger) -> DoomAgent:
       """Return a agent."""
       del player_info
-      return DoomAgent(predictor)
+      return DoomAgent(unroll_len, buffer, predictor, logger)
 
     return agent_wrapper
 
@@ -167,10 +168,8 @@ def make_lp_program() -> Any:
     for i in range(FLAGS.num_actors):
       actor_node = lp.CourierNode(
         VectorActor,
-        buffer,
-        Deferred(agent_maker, predictors[i % FLAGS.num_predictors]),
+        Deferred(agent_maker, buffer, predictors[i % FLAGS.num_predictors]),
         env_maker,
-        FLAGS.unroll_len,
         logger_fn,
       )
       program.add_node(actor_node)
