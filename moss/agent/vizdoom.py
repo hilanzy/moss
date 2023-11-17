@@ -18,7 +18,7 @@ class DoomAgent(BaseAgent):
     logger: Logger
   ) -> None:
     """Init."""
-    super().__init__("Atari", unroll_length, buffer, predictor, logger)
+    super().__init__("Doom", unroll_length, buffer, predictor, logger)
     self._episode_steps: int = 0
     self._rewards: float = 0
 
@@ -54,8 +54,8 @@ class DoomAgent(BaseAgent):
 
   def inference(self, state: AgentState) -> Any:
     """Inference."""
-    resp_idx = self._predicotr.inference(state)
-    return lambda: self._predicotr.result(resp_idx)
+    resp_idx = self._predictor.inference(state)
+    return lambda: self._predictor.result(resp_idx)
 
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
