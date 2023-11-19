@@ -25,7 +25,7 @@ To get up and running quickly just follow the steps below:
   from the main directory (where `setup.py` is located):
 
   ```bash
-  pip install .["dev"]
+  pip install -e ".[dev]"
   ```
 
 After installation, open your python console and type
