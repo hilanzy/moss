@@ -20,7 +20,8 @@ def get_install_requires() -> List[str]:
   ]
 
   jax_requirements = [
-    "jax",
+    "jax==0.4.9",
+    "jaxlib==0.4.9",
     "chex",
     "dm-haiku",
     "flax",
@@ -35,6 +36,7 @@ def get_install_requires() -> List[str]:
     "dm-tree",
     "numpy",
     "pillow",
+    "pygame",
     "tqdm",
     "typing-extensions",
   ] + jax_requirements
@@ -45,9 +47,9 @@ def get_extras_require() -> Dict[str, List[str]]:
   req = {
     "dev":
       [
-        "sphinx<4",
+        "sphinx<7",
         "sphinx_rtd_theme",
-        "jinja2<3.2",
+        "jinja2",
         "sphinxcontrib-bibtex",
         "flake8",
         "flake8-bugbear",
@@ -89,7 +91,7 @@ setup(
     "Topic :: Software Development :: Libraries :: Python Modules",
     # Pick your license as you wish (should match "license" above)
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.10",
   ],
   keywords="reinforcement-learning python machine learning",
 )
