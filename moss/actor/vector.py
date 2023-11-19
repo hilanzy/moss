@@ -7,7 +7,7 @@ import jax
 import numpy as np
 from absl import logging
 
-from moss.agent.base import BaseAgent
+from moss.agent import BaseAgent
 from moss.core import Actor
 from moss.env import BaseVectorEnv
 from moss.types import Transition

@@ -10,7 +10,8 @@ import jax
 import jax.numpy as jnp
 from absl import logging
 
-from moss.core import Network, Params, Predictor
+from moss.core import Params, Predictor
+from moss.network import Network
 from moss.types import AgentState, Array, KeyArray, NetOutput
 from moss.utils.loggers import Logger
 

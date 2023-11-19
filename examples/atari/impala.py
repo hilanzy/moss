@@ -11,12 +11,12 @@ from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
 from examples.atari.network import network_maker
-from moss.actor.vector import VectorActor
+from moss.actor import VectorActor
 from moss.agent.atari import AtariAgent
-from moss.buffer.queue import QueueBuffer
+from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
-from moss.learner.impala import ImpalaLearner
-from moss.predictor.base import BasePredictor
+from moss.learner import ImpalaLearner
+from moss.predictor import BasePredictor
 from moss.types import Environment
 from moss.utils.loggers import Logger, experiment_logger_factory
 from moss.utils.paths import get_unique_id

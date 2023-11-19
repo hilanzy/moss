@@ -10,7 +10,8 @@ import jax
 import optax
 from absl import logging
 
-from moss.core import Buffer, Learner, Network, Predictor
+from moss.core import Buffer, Learner, Predictor
+from moss.network import Network
 from moss.types import Array, LoggingData, OptState, Params, Transition
 from moss.utils.loggers import Logger
 
