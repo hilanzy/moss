@@ -1,4 +1,4 @@
-"""A actor for vectorized environment."""
+"""Generic actor."""
 import collections
 import time
 from typing import Callable, Dict, Optional, Tuple
@@ -14,8 +14,15 @@ from moss.types import Transition
 from moss.utils.loggers import Logger
 
 
-class VectorActor(Actor):
-  """Base actor."""
+class GenericActor(Actor):
+  """A generic actor implemention.
+
+  A generic actor for all types of environments:
+    - Single agent environment.
+    - Multi agent environment.
+    - Single environment.
+    - Vectorized environment.
+  """
 
   def __init__(
     self,

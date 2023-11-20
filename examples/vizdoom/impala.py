@@ -12,7 +12,7 @@ from launchpad.nodes.python.local_multi_processing import PythonProcess
 
 from examples.vizdoom.network import network_maker
 from examples.vizdoom.utils import vizdoom_env_maker
-from moss.actor import VectorActor
+from moss.actor import GenericActor
 from moss.agent.vizdoom import DoomAgent
 from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv, TimeStep
@@ -167,7 +167,7 @@ def make_lp_program() -> Any:
   with program.group("actor"):
     for i in range(FLAGS.num_actors):
       actor_node = lp.CourierNode(
-        VectorActor,
+        GenericActor,
         Deferred(agent_maker, buffer, predictors[i % FLAGS.num_predictors]),
         env_maker,
         logger_fn,
