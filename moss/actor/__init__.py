@@ -1,4 +1,4 @@
 """Actor."""
-from moss.actor.vector import VectorActor
+from moss.actor.generic import GenericActor
 
-__all__ = ["VectorActor"]
+__all__ = ["GenericActor"]
