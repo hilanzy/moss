@@ -49,7 +49,7 @@ class BaseAgent(Agent):
 
   def result(self, idx: int) -> Any:
     """Get inference result async."""
-    return self._predictor.result(idx)  
+    return self._predictor.result(idx)
 
   def add(self, transition: Transition) -> None:
     """Agent add transition to buffer."""
