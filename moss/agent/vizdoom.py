@@ -52,11 +52,6 @@ class DoomAgent(BaseAgent):
     self._rewards += reward
     return state, reward
 
-  def inference(self, state: AgentState) -> Any:
-    """Inference."""
-    resp_idx = self._predictor.inference(state)
-    return lambda: self._predictor.result(resp_idx)
-
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
     return action["doom_action"]

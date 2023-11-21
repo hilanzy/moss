@@ -51,7 +51,6 @@ class GenericActor(Actor):
       states_dict = collections.defaultdict(list)
       rewards_dict = collections.defaultdict(list)
       responses_dict = collections.defaultdict(list)
-      actions_dict = collections.defaultdict(list)
       for env_id, timesteps in timesteps_dict.items():
         for timestep in timesteps:
           ep_id = (env_id, timestep.player_id)
@@ -62,18 +61,17 @@ class GenericActor(Actor):
           states_dict[env_id].append(state)
           rewards_dict[env_id].append(reward)
           responses_dict[env_id].append(response)
-      get_result_start = time.time()
-      results = collections.defaultdict(list)
-      for env_id, responses in responses_dict.items():
-        for response in responses:
-          results[env_id].append(response())
-      get_result_time = time.time() - get_result_start
-      for env_id in timesteps_dict.keys():
-        for timestep, state, (action, logits, value), reward in zip(
-          timesteps_dict[env_id], states_dict[env_id], results[env_id],
+      get_result_time = 0.0
+      actions_dict = collections.defaultdict(list)
+      for env_id, timesteps in timesteps_dict.items():
+        for timestep, state, response, reward in zip(
+          timesteps, states_dict[env_id], responses_dict[env_id],
           rewards_dict[env_id]
         ):
           ep_id = (env_id, timestep.player_id)
+          get_result_start = time.time()
+          action, logits, value = agents[ep_id].result(response)
+          get_result_time += time.time() - get_result_start
           take_action = agents[ep_id].take_action(action)
           actions_dict[env_id].append(take_action)
           transition = Transition(

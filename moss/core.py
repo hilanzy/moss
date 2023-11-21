@@ -43,6 +43,10 @@ class Agent(abc.ABC):
     """Inference."""
 
   @abc.abstractmethod
+  def result(self, idx: int) -> Any:
+    """Get inference result async."""
+
+  @abc.abstractmethod
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
 
