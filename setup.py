@@ -22,8 +22,8 @@ def get_install_requires() -> List[str]:
   jax_requirements = [
     "jax==0.4.9",
     "jaxlib==0.4.9",
+    "dm-haiku==0.0.10",
     "chex",
-    "dm-haiku",
     "flax",
     "optax",
     "rlax",
@@ -91,6 +91,8 @@ setup(
     "Topic :: Software Development :: Libraries :: Python Modules",
     # Pick your license as you wish (should match "license" above)
     "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
   ],
   keywords="reinforcement-learning python machine learning",
