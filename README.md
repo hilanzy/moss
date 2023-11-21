@@ -4,6 +4,7 @@
 
 # Moss: A Python library for Reinforcement Learning
 
+[![PyPI Python Version](https://img.shields.io/pypi/pyversions/moss-rl)](https://pypi.org/project/moss-rl/)
 [![PyPI](https://img.shields.io/pypi/v/moss-rl)](https://pypi.org/project/moss-rl/)
 [![GitHub license](https://img.shields.io/github/license/hilanzy/moss)](https://github.com/hilanzy/moss/blob/master/LICENSE)
 
