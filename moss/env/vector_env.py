@@ -2,7 +2,7 @@
 from typing import Any, Callable, Dict, List
 
 from moss.env.base import BaseEnv, TimeStep
-from moss.env.worker import BaseEnvWorker, DummyWorker
+from moss.env.worker import BaseEnvWorker, DummyWorker, RayEnvWorker
 
 
 class BaseVectorEnv(BaseEnv):
@@ -20,7 +20,7 @@ class BaseVectorEnv(BaseEnv):
     self,
     num_envs: int,
     env_maker: Callable[[], BaseEnv],
-    worker_fn: Callable[[BaseEnv], BaseEnvWorker],
+    worker_fn: Callable[[Callable[[], BaseEnv]], BaseEnvWorker],
     process_fn: Callable[..., List[TimeStep]],
     **kwargs: Any,
   ) -> None:
@@ -36,8 +36,8 @@ class BaseVectorEnv(BaseEnv):
       kwargs: Any other arguments.
     """
     self._num_envs = num_envs
-    self._envs = [env_maker() for _ in range(num_envs)]
-    self._workers = [worker_fn(env) for env in self._envs]
+    self._env_maker = env_maker
+    self._workers = [worker_fn(env_maker) for _ in range(num_envs)]
     self._process_fn = process_fn
     if kwargs.get("observation_spec") is not None:
       self.observation_spec = kwargs["observation_spec"]  # type: ignore
@@ -128,4 +128,15 @@ class EnvpoolVectorEnv(BaseVectorEnv):
   @property
   def num_envs(self) -> int:
     """Num of vectorized environments."""
-    return self._envs[0].config["num_envs"]
+    return self._workers[0].env.config["num_envs"]
+
+
+class RayVectorEnv(BaseVectorEnv):
+  """Ray vectorized environments wrapper, implemented in ray."""
+
+  def __init__(
+    self, num_envs: int, env_maker: Callable[[], BaseEnv],
+    process_fn: Callable[..., List[TimeStep]], **kwargs: Any
+  ) -> None:
+    """Ray vectorized environments wrapper."""
+    super().__init__(num_envs, env_maker, RayEnvWorker, process_fn, **kwargs)

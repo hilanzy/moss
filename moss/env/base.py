@@ -72,8 +72,8 @@ class BaseEnv(Environment):
 
   def send(self, action: Any) -> Any:
     """Send action to low-level environment api."""
-    pass
+    raise NotImplementedError
 
   def recv(self) -> Any:
     """Receive result from low-level environment api."""
-    pass
+    raise NotImplementedError
