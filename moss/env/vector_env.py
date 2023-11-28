@@ -53,7 +53,7 @@ class BaseVectorEnv(BaseEnv):
         Value: `List[TimeStep]` containing all player's timestep.
     """
     timesteps_dict = {
-      env_id: self._process_fn(worker.reset())
+      env_id: self._process_fn(env_id, worker.reset())
       for env_id, worker in enumerate(self._workers)
     }
     return timesteps_dict
@@ -71,7 +71,7 @@ class BaseVectorEnv(BaseEnv):
         Value: `List[TimeStep]` containing all player's timestep.
     """
     timesteps_dict = {
-      env_id: self._process_fn(worker.step(actions[env_id]))
+      env_id: self._process_fn(env_id, worker.step(actions[env_id]))
       for env_id, worker in enumerate(self._workers)
     }
     return timesteps_dict

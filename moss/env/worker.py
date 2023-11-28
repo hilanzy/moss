@@ -52,12 +52,13 @@ class RayEnvWorker(BaseEnvWorker):
 
   def __init__(self, env_maker: Callable[[], BaseEnv]) -> None:
     """Init."""
-    self._env = ray.remote(num_cpus=0)(env_maker).remote()  # type: ignore
+    self._env =\
+      ray.remote(num_cpus=0)(DummyWorker).remote(env_maker)  # type: ignore
 
   def reset(self) -> Any:
     """Call ray env worker reset remote."""
-    return self._env.reset.remote()  # type: ignore
+    return ray.get(self._env.reset.remote())  # type: ignore
 
   def step(self, actions: Any) -> Any:
     """Call ray env step remote."""
-    return self._env.step.remote(actions)  # type: ignore
+    return ray.get(self._env.step.remote(actions))  # type: ignore
