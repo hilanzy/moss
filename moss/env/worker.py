@@ -6,8 +6,10 @@ from moss.env.base import BaseEnv
 
 try:
   import ray
-except ImportError:
-  ray = None  # type: ignore
+except ImportError as exception:
+  raise ImportError(
+    "Please install ray to support RayVectorEnv: pip install ray"
+  ) from exception
 
 
 class BaseEnvWorker(abc.ABC):
