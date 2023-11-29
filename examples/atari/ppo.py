@@ -85,7 +85,7 @@ def make_lp_program() -> Any:
         task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
       )
 
-    def process_fn(timesteps: Any) -> Any:
+    def process_fn(env_id: int, timesteps: Any) -> Any:
       """Timesteps process function."""
 
       def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
@@ -100,7 +100,7 @@ def make_lp_program() -> Any:
       timesteps = split_batch_timestep(timesteps)
       new_timesteps = []
       for i, timestep in enumerate(timesteps):
-        new_timesteps.append(TimeStep(0, i, None, *timestep))
+        new_timesteps.append(TimeStep(env_id, i, None, *timestep))
       return new_timesteps
 
     return EnvpoolVectorEnv(env_wrapper, process_fn)
