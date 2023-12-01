@@ -44,7 +44,7 @@ class BaseLearner(Learner):
     if model_path is not None:
       self._params = self._load_model(model_path)
     else:
-      self._params = self._init_params(seed)
+      self._params = self._initial_params(seed)
     self._publish_params(self._params)
     self._optmizer = optax.rmsprop(learning_rate, decay=0.99, eps=1e-7)
     if gradient_clip is not None:
@@ -58,10 +58,10 @@ class BaseLearner(Learner):
     self._publish_interval = publish_interval
     logging.info(jax.devices())
 
-  def _init_params(self, seed: int) -> Params:
+  def _initial_params(self, seed: int) -> Params:
     """Init params and update to predictor."""
     rng = jax.random.PRNGKey(seed)
-    params = self._network.init_params(rng)
+    params = self._network.initial_params(rng)
     return params
 
   def _publish_params(self, params: Params) -> None:

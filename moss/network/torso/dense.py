@@ -1,9 +1,11 @@
-"""Torso decoder network."""
-from typing import Any, Dict, List
+"""Dense torso network."""
+from typing import Any, Dict, List, Tuple
 
 import haiku as hk
 import jax
 import jax.numpy as jnp
+
+from moss.types import Array
 
 
 class DenseTorso(hk.Module):
@@ -17,8 +19,14 @@ class DenseTorso(hk.Module):
     self._hidden_sizes = hidden_sizes
     self._use_orthogonal = use_orthogonal
 
-  def __call__(self, inputs: Dict[str, Any]) -> Any:
-    """Call."""
+  def __call__(self, inputs: Dict[str, Any],
+               rnn_state: Any) -> Tuple[Array, Any]:
+    """Dense torso network forward.
+
+    Args:
+      inputs: input features.
+      rnn_state: rnn state, ignore for this class.
+    """
     mlp_layers: List[Any] = []
     w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
     for hidden_size in self._hidden_sizes:
@@ -27,4 +35,4 @@ class DenseTorso(hk.Module):
     torso_net = hk.Sequential(mlp_layers)
     torso_input = jnp.concatenate(list(inputs.values()), axis=0)
     torso_out = torso_net(torso_input)
-    return torso_out
+    return torso_out, rnn_state
