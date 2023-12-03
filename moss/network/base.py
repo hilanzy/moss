@@ -53,8 +53,8 @@ class CommonModule(hk.Module):
       for name, feature_set in feature_spec.feature_sets.items()
     }
     self._action_spec = action_spec
-    self._torso_net_maker = torso_net_maker
-    self._value_net_maker = value_net_maker
+    self._torso_net = torso_net_maker()
+    self._value_net = value_net_maker()
 
   def __call__(
     self, features: Dict, rnn_state: RNNState, training: bool
@@ -73,17 +73,16 @@ class CommonModule(hk.Module):
         embedding = encoder_net(processor(feature))
       embeddings[name] = embedding
 
-    torso_net = self._torso_net_maker()
     if training:
-      if isinstance(torso_net, hk.RNNCore):
+      if isinstance(self._torso_net, hk.RNNCore):
         torso_out, rnn_state = hk.dynamic_unroll(
-          torso_net, embeddings, rnn_state
+          self._torso_net, embeddings, rnn_state
         )
       else:
-        batch_torso_apply = hk.BatchApply(torso_net)
+        batch_torso_apply = hk.BatchApply(self._torso_net)
         torso_out, rnn_state = batch_torso_apply(embeddings, rnn_state)
     else:
-      torso_out, rnn_state = torso_net(embeddings, rnn_state)
+      torso_out, rnn_state = self._torso_net(embeddings, rnn_state)
 
     # policy logits
     policy_logits = {}
@@ -96,20 +95,18 @@ class CommonModule(hk.Module):
         policy_logits[name] = action.policy_net(torso_out, action_mask)
 
     # value
-    value_net = self._value_net_maker()
     if training:
-      batch_value_apply = hk.BatchApply(value_net)
+      batch_value_apply = hk.BatchApply(self._value_net)
       value = batch_value_apply(torso_out)
     else:
-      value = value_net(torso_out)
+      value = self._value_net(torso_out)
 
     return NetOutput(policy_logits, value, rnn_state)
 
   def initial_state(self, batch_size: Optional[int]) -> RNNState:
     """Constructs an initial state for rnn core."""
     try:
-      torso_net = self._torso_net_maker()
-      rnn_state = torso_net.initial_state(batch_size)
+      rnn_state = self._torso_net.initial_state(batch_size)
     except Exception:
       rnn_state = None
     return rnn_state
