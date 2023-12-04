@@ -27,6 +27,7 @@ class BaseAgent(Agent):
     self._unroll_length = unroll_length
     self._buffer = buffer
     self._predictor = predictor
+    self._rnn_state = predictor.initial_state(None)
     self._logger = logger
     self._unroll_steps = 0
     self._trajectory: List[Transition] = []
@@ -45,11 +46,13 @@ class BaseAgent(Agent):
 
   def inference(self, state: AgentState) -> Any:
     """Agent inference."""
-    return self._predictor.inference(state)
+    return self._predictor.inference(state, self._rnn_state)
 
   def result(self, idx: int) -> Any:
     """Get inference result async."""
-    return self._predictor.result(idx)
+    action, logits, value, rnn_state = self._predictor.result(idx)
+    self._rnn_state = jax.tree_map(lambda x: jnp.array(x), rnn_state)
+    return action, logits, value, rnn_state
 
   def add(self, transition: Transition) -> None:
     """Agent add transition to buffer."""

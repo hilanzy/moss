@@ -4,7 +4,6 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import chex
 import distrax
-import haiku as hk
 import jax
 import jax.numpy as jnp
 import rlax
@@ -12,14 +11,7 @@ import rlax
 from moss.core import Buffer, Predictor
 from moss.learner.base import BaseLearner
 from moss.network import Network
-from moss.types import (
-  Array,
-  LoggingData,
-  NetOutput,
-  Params,
-  StepType,
-  Transition,
-)
+from moss.types import Array, LoggingData, Params, StepType, Transition
 from moss.utils.loggers import Logger
 
 
@@ -90,10 +82,10 @@ class PPOLearner(BaseLearner):
 
   def _loss(self, params: Params, data: Transition) -> Tuple[Array, LoggingData]:
     """PPO loss."""
-    # Batch forward.
-    batch_forward_fn = hk.BatchApply(partial(self._network.forward, params))
-    _, net_output = batch_forward_fn(data.state, jax.random.PRNGKey(0))
-    net_output: NetOutput
+    rnn_state = jax.tree_map(lambda x: x[0], data.rnn_state)
+    _, net_output = self._network.forward(
+      params, data.state, rnn_state, jax.random.PRNGKey(0), True
+    )
 
     actions, rewards = data.action, data.reward
     behaviour_logits = data.policy_logits

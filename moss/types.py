@@ -16,6 +16,7 @@ LoggingData = Dict[str, Any]
 
 Observation = Any
 AgentState = Any
+RNNState = Any
 Action = Any
 Reward = Any
 History = Any
@@ -26,10 +27,13 @@ class Transition(NamedTuple):
   step_type: StepType
   state: AgentState
   action: Action
+  rnn_state: RNNState
   reward: Reward
   policy_logits: Dict[str, Array]
   behaviour_value: Array
 
 
 Trajectory = Union[Transition, List[Transition]]
-NetOutput = collections.namedtuple("NetOutput", ["policy_logits", "value"])
+NetOutput = collections.namedtuple(
+  "NetOutput", ["policy_logits", "value", "rnn_state"]
+)

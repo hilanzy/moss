@@ -36,10 +36,12 @@ class ReverbQueue(Buffer):
         writer.append(
           dict(
             step_type=data.step_type,
-            obs=data.obs,
+            state=data.state,
             action=data.action,
+            rnn_state=data.rnn_state,
             reward=data.reward,
             policy_logits=data.policy_logits,
+            behaviour_value=data.behaviour_value,
           )
         )
         writer.create_item(
@@ -47,10 +49,12 @@ class ReverbQueue(Buffer):
           priority=1.0,
           trajectory=[
             writer.history["step_type"][0],
-            writer.history["obs"][0],
+            writer.history["state"][0],
             writer.history["action"][0],
+            writer.history["rnn_state"][0],
             writer.history["reward"][0],
             writer.history["policy_logits"][0],
+            writer.history["behaviour_value"][0],
           ]
         )
 
@@ -69,9 +73,10 @@ class ReverbQueue(Buffer):
         step_type=data.data[0],
         state=data.data[1],
         action=data.data[2],
-        reward=data.data[3],
-        policy_logits=data.data[4],
-        behaviour_value=data.data[5],
+        rnn_state=data.data[3],
+        reward=data.data[4],
+        policy_logits=data.data[5],
+        behaviour_value=data.data[6],
       )
       datas.append(transition)
     stacked_data = tree_map(lambda *x: jnp.stack(x, axis=1), *datas)

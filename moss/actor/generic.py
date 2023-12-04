@@ -70,7 +70,7 @@ class GenericActor(Actor):
         ):
           ep_id = (env_id, timestep.player_id)
           get_result_start = time.time()
-          action, logits, value = agents[ep_id].result(response)
+          action, logits, value, rnn_state = agents[ep_id].result(response)
           get_result_time += time.time() - get_result_start
           take_action = agents[ep_id].take_action(action)
           actions_dict[env_id].append(take_action)
@@ -78,6 +78,7 @@ class GenericActor(Actor):
             step_type=timestep.step_type,
             state=state,
             action=action,
+            rnn_state=rnn_state,
             reward=reward,
             policy_logits=logits,
             behaviour_value=value,

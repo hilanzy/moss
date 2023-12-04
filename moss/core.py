@@ -1,6 +1,6 @@
 """Core interface."""
 import abc
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
@@ -10,6 +10,7 @@ from moss.types import (
   OptState,
   Params,
   Reward,
+  RNNState,
   Trajectory,
   Transition,
 )
@@ -101,9 +102,13 @@ class Predictor(Worker):
     """Update params."""
 
   @abc.abstractmethod
-  def inference(self, state: AgentState) -> Any:
+  def inference(self, state: AgentState, rnn_state: RNNState) -> Any:
     """Inference."""
 
   @abc.abstractmethod
   def result(self, idx: int) -> Any:
     """Get result async."""
+
+  @abc.abstractmethod
+  def initial_state(self, batch_size: Optional[int]) -> RNNState:
+    """Get initial rnn state."""
