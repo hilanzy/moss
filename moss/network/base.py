@@ -49,7 +49,7 @@ class CommonModule(hk.Module):
     super().__init__("common_module")
     self._feature_spec = feature_spec
     self._feature_encoder = {
-      name: (feature_set.process, feature_set.encoder_net_maker)
+      name: (feature_set.process, feature_set.encoder_net_maker())
       for name, feature_set in feature_spec.feature_sets.items()
     }
     self._action_spec = action_spec
@@ -63,14 +63,13 @@ class CommonModule(hk.Module):
     embeddings = {}
     for name, feature_encoder in self._feature_encoder.items():
       feature = features[name]
-      processor, encoder_net_maker = feature_encoder
-      encoder_net = encoder_net_maker()
+      processor, encoder = feature_encoder
       if training:
-        batch_encoder_apply = hk.BatchApply(encoder_net)
+        batch_encoder_apply = hk.BatchApply(encoder)
         batch_process_apply = hk.BatchApply(processor)
         embedding = batch_encoder_apply(batch_process_apply(feature))
       else:
-        embedding = encoder_net(processor(feature))
+        embedding = encoder(processor(feature))
       embeddings[name] = embedding
 
     if training:
@@ -84,7 +83,6 @@ class CommonModule(hk.Module):
     else:
       torso_out, rnn_state = self._torso_net(embeddings, rnn_state)
 
-    # policy logits
     policy_logits = {}
     for name, action in self._action_spec.actions.items():
       action_mask = features.get(action.mask_on)
@@ -94,7 +92,6 @@ class CommonModule(hk.Module):
       else:
         policy_logits[name] = action.policy_net(torso_out, action_mask)
 
-    # value
     if training:
       batch_value_apply = hk.BatchApply(self._value_net)
       value = batch_value_apply(torso_out)
