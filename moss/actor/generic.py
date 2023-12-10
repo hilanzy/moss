@@ -1,7 +1,7 @@
 """Generic actor."""
 import collections
 import time
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Tuple
 
 import jax
 import numpy as np
@@ -29,24 +29,21 @@ class GenericActor(Actor):
     agent_maker: Callable[..., BaseAgent],
     env_maker: Callable[[], BaseVectorEnv],
     logger_fn: Callable[..., Logger],
-    num_trajs: Optional[int] = None,
   ) -> None:
     """Init."""
     self._agent_maker = agent_maker
     self._env_maker = env_maker
-    self._num_trajs = num_trajs
     self._logger_fn = logger_fn
     self._logger = logger_fn(label="Actor")
     logging.info(jax.devices())
 
   def run(self) -> None:
     """Run actor."""
-    num_trajs = 0
     agent_logger = self._logger_fn(label="Agent")
     agents: Dict[Tuple[int, int], BaseAgent] = {}
     envs = self._env_maker()
     timesteps_dict = envs.reset()
-    while not self._num_trajs or num_trajs < self._num_trajs:
+    while True:
       actor_step_start = time.time()
       states_dict = collections.defaultdict(list)
       rewards_dict = collections.defaultdict(list)
