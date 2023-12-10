@@ -6,20 +6,32 @@ import numpy as np
 
 from moss.network.action import ActionSpec, DiscreteAction
 from moss.network.base import CommonNet
-from moss.network.feature import (
-  FeatureSet,
-  FeatureSpec,
-  ImageFeature,
+from moss.network.feature import FeatureSet, FeatureSpec, ImageFeature
+from moss.network.feature.encoder import (
+  Conv2DConfig,
   ImageFeatureEncoder,
+  ResnetConfig,
 )
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
+
+resnet_default_config = [
+  ResnetConfig(16, 2),
+  ResnetConfig(16, 2),
+  ResnetConfig(32, 2),
+]
+conv2d_default_config = [
+  Conv2DConfig(32, 8, 4, "VALID"),
+  Conv2DConfig(64, 4, 2, "VALID"),
+  Conv2DConfig(64, 3, 1, "VALID"),
+]
 
 
 def network_maker(
   obs_spec: Any,
   action_spec: Any,
   data_format: str = "NHWC",
+  use_resnet: bool = False,
   use_orthogonal: bool = True,
 ) -> Any:
   """Doom network maker."""
@@ -34,8 +46,13 @@ def network_maker(
           lambda x: x / 255.
         )
     },
-    encoder_net_maker=lambda: ImageFeatureEncoder(
-      "frame_encoder", data_format, use_orthogonal=use_orthogonal
+    encoder_net_maker=lambda: lambda: ImageFeatureEncoder(
+      "frame_encoder",
+      data_format,
+      use_resnet=use_resnet,
+      resnet_config=resnet_default_config,
+      conv2d_config=conv2d_default_config,
+      use_orthogonal=use_orthogonal
     )
   )
   feature_spec = {

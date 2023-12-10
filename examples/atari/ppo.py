@@ -26,6 +26,9 @@ flags.DEFINE_integer("stack_num", 1, "Stack nums.")
 flags.DEFINE_integer("num_envs", 32, "Num of envs.")
 flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
 flags.DEFINE_bool(
+  "use_resnet", False, "Use resnet or conv2d encoder for atari image."
+)
+flags.DEFINE_bool(
   "use_orthogonal", True, "Use orthogonal to initialization params weight."
 )
 flags.DEFINE_integer("num_actors", 16, "Num of actors.")
@@ -70,6 +73,7 @@ def make_lp_program() -> Any:
   )
   obs_spec: Any = dummy_env.observation_spec()
   action_spec: Any = dummy_env.action_spec()
+  use_resnet = FLAGS.use_resnet
   use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
@@ -134,7 +138,10 @@ def make_lp_program() -> Any:
       predictor_node = lp.CourierNode(
         BasePredictor,
         FLAGS.predict_batch_size,
-        partial(network_maker, obs_spec, action_spec, "NHWC", use_orthogonal),
+        partial(
+          network_maker, obs_spec, action_spec, "NHWC", use_resnet,
+          use_orthogonal
+        ),
         logger_fn,
       )
       predictor = program.add_node(predictor_node)
@@ -156,7 +163,9 @@ def make_lp_program() -> Any:
       PPOLearner,
       buffer,
       predictors,
-      partial(network_maker, obs_spec, action_spec, "NHWC", use_orthogonal),
+      partial(
+        network_maker, obs_spec, action_spec, "NHWC", use_resnet, use_orthogonal
+      ),
       logger_fn,
       batch_size=FLAGS.training_batch_size,
       save_interval=FLAGS.save_interval,

@@ -6,10 +6,6 @@ from moss.network.feature.feature import (
   ScalarFeature,
   VectorFeature,
 )
-from moss.network.feature.feature_encoder import (
-  CommonEncoder,
-  ImageFeatureEncoder,
-)
 from moss.network.feature.feature_set import FeatureSet
 from moss.network.feature.feature_spec import FeatureSpec
 
@@ -19,8 +15,6 @@ __all__ = [
   "OneHotFeature",
   "ScalarFeature",
   "VectorFeature",
-  "CommonEncoder",
-  "ImageFeatureEncoder",
   "FeatureSet",
   "FeatureSpec",
 ]
