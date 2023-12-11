@@ -24,7 +24,7 @@ FLAGS = flags.FLAGS
 
 def main(_):
   """Main."""
-  local_env = LocalEnv(FLAGS.task_id)
+  local_env = LocalEnv(FLAGS.task_id, scale=5)
   obs_spec = local_env.observation_spec()
   action_spec = local_env.action_spec()
 
@@ -34,7 +34,7 @@ def main(_):
   with open(FLAGS.model_path, mode="rb") as f:
     params: Params = pickle.load(f)
     predictor.update_params(params)
-  agent = AtariAgent(predictor)
+  agent = AtariAgent(0, None, predictor, TerminalLogger())
 
   rng = jax.random.PRNGKey(42)
   total_reward = 0
@@ -49,7 +49,7 @@ def main(_):
     total_reward += reward
     sub_key, rng = jax.random.split(rng)
     state = tree.map_structure(lambda x: np.expand_dims(x, 0), state)
-    action, _ = predictor._forward(params, state, sub_key)
+    action, _ = predictor._forward(params, state, None, sub_key)
     take_action = agent.take_action(action)
     take_action = np.array(take_action)
     timestep = local_env.step(take_action)
