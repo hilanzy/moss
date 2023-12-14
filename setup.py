@@ -11,10 +11,7 @@ def get_version() -> str:
 
 
 def get_install_requires() -> List[str]:
-  tensorflow = [
-    "tensorflow==2.8.0",
-    "tensorflow_probability==0.15.0",
-    "tensorflow_datasets==4.6.0",
+  deepmind = [
     "dm-reverb==0.12.0",
     "dm-launchpad==0.5.2",
   ]
@@ -27,7 +24,7 @@ def get_install_requires() -> List[str]:
     "flax",
     "optax",
     "rlax",
-  ] + tensorflow
+  ] + deepmind
 
   requirements = [
     "absl-py",
@@ -37,6 +34,7 @@ def get_install_requires() -> List[str]:
     "numpy",
     "pillow",
     "pygame",
+    "tensorboardX",
     "tqdm",
     "typing-extensions",
   ] + jax_requirements
