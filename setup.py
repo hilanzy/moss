@@ -11,7 +11,8 @@ def get_version() -> str:
 
 
 def get_install_requires() -> List[str]:
-  deepmind = [
+  launchpad = [
+    "tensorflow==2.8.1",
     "dm-reverb==0.12.0",
     "dm-launchpad==0.5.2",
   ]
@@ -24,7 +25,7 @@ def get_install_requires() -> List[str]:
     "flax",
     "optax",
     "rlax",
-  ] + deepmind
+  ] + launchpad
 
   requirements = [
     "absl-py",
