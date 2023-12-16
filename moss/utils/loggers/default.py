@@ -63,7 +63,7 @@ def make_default_logger(
     loggers.append(csv.CSVLogger(csv_log_dir, label, add_uid=False))
   if use_tb:
     tb_log_dir = os.path.join(log_dir, "tb")
-    loggers.append(tensorboard.TFSummaryLogger(tb_log_dir, label))
+    loggers.append(tensorboard.TBXSummaryLogger(tb_log_dir, label))
 
   # Dispatch to all writers and filter Nones and by time.
   logger = aggregators.Dispatcher(loggers, serialize_fn)
