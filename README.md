@@ -38,6 +38,30 @@ After installation, open your python console and type
 
 If no error occurs, you have successfully installed Moss.
 
+**Work on GPU or TPU**
+
+If you want to run Moss with NVIDIA GPU, please run the steps below:
+
+  ```bash
+  pip install --upgrade pip
+
+  # CUDA 12 installation
+  # Note: wheels only available on linux.
+  pip install --upgrade "jax[cuda12_pip]==0.4.9" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+  # CUDA 11 installation
+  # Note: wheels only available on linux.
+  pip install --upgrade "jax[cuda11_pip]==0.4.9" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+  ```
+
+Or if you want to run with Google Cloud TPU:
+
+  ```bash
+  pip install "jax[tpu]==0.4.9" -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
+  ```
+
+For more details, please see the JAX installation instructions [here](https://github.com/google/jax/tree/jax-v0.4.9#installation).
+
 ## Quick Start
 
 This is an example of Impala to train Atari game(use [envpool](https://github.com/sail-sg/envpool)).
