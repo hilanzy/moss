@@ -24,7 +24,7 @@ FLAGS = flags.FLAGS
 
 def main(_):
   """Main."""
-  local_env = LocalEnv(FLAGS.task_id, scale=5)
+  local_env = LocalEnv(FLAGS.task_id, scale=2)
   obs_spec = local_env.observation_spec()
   action_spec = local_env.action_spec()
 
@@ -40,7 +40,6 @@ def main(_):
   total_reward = 0
   timestep: TimeStep = local_env.reset()
   while True:
-    local_env.render()
     if timestep.first():
       total_reward = 0
       agent.reset()
