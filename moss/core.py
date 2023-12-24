@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
-  AgentState,
   Array,
   LoggingData,
   OptState,
@@ -36,11 +35,11 @@ class Agent(abc.ABC):
     """Reset agent."""
 
   @abc.abstractmethod
-  def step(self, timestep: TimeStep) -> Tuple[AgentState, Reward]:
+  def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
     """Take step."""
 
   @abc.abstractmethod
-  def inference(self, state: AgentState) -> Any:
+  def inference(self, input_dict: Dict) -> Any:
     """Inference."""
 
   @abc.abstractmethod
@@ -102,7 +101,7 @@ class Predictor(Worker):
     """Update params."""
 
   @abc.abstractmethod
-  def inference(self, state: AgentState, rnn_state: RNNState) -> Any:
+  def inference(self, input_dict: Dict, rnn_state: RNNState) -> Any:
     """Inference."""
 
   @abc.abstractmethod

@@ -13,8 +13,8 @@ class Action(abc.ABC):
 
   @property
   @abc.abstractmethod
-  def mask_on(self) -> ArraySpec:
-    """Dependencies for action mask.."""
+  def name(self) -> ArraySpec:
+    """Get action name."""
 
   @property
   @abc.abstractmethod

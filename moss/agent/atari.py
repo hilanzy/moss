@@ -6,7 +6,8 @@ import jax.numpy as jnp
 from moss.agent.base import BaseAgent
 from moss.core import Buffer, Predictor
 from moss.env import TimeStep
-from moss.types import AgentState, LoggingData, Reward
+from moss.network.keys import AGENT_STATE
+from moss.types import LoggingData, Reward
 from moss.utils.loggers import Logger
 
 
@@ -54,11 +55,11 @@ class AtariAgent(BaseAgent):
     self._init()
     return metrics
 
-  def step(self, timestep: TimeStep) -> Tuple[AgentState, Reward]:
+  def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
     """Agent step.
 
     Return:
-      state: agent state input.
+      input_dict: input dict for network.
         Returns must be serializable Python object to ensure that it can
         exchange data between launchpad's nodes.
     """
@@ -66,10 +67,11 @@ class AtariAgent(BaseAgent):
     if self._data_format == "NHWC":
       obs = jnp.transpose(obs, axes=(1, 2, 0))
     state = {"atari_frame": {"frame": jnp.array(obs)}}
+    input_dict = {AGENT_STATE: state}
     reward = timestep.reward
     self._episode_steps += 1
     self._rewards += reward
-    return state, reward
+    return input_dict, reward
 
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""

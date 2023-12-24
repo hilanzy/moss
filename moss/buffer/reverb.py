@@ -36,7 +36,7 @@ class ReverbQueue(Buffer):
         writer.append(
           dict(
             step_type=data.step_type,
-            state=data.state,
+            input_dict=data.input_dict,
             action=data.action,
             rnn_state=data.rnn_state,
             reward=data.reward,
@@ -49,7 +49,7 @@ class ReverbQueue(Buffer):
           priority=1.0,
           trajectory=[
             writer.history["step_type"][0],
-            writer.history["state"][0],
+            writer.history["input_dict"][0],
             writer.history["action"][0],
             writer.history["rnn_state"][0],
             writer.history["reward"][0],
@@ -71,7 +71,7 @@ class ReverbQueue(Buffer):
     for data in sample:
       transition = Transition(
         step_type=data.data[0],
-        state=data.data[1],
+        input_dict=data.data[1],
         action=data.data[2],
         rnn_state=data.data[3],
         reward=data.data[4],

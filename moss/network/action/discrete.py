@@ -19,7 +19,6 @@ class DiscreteAction(Action):
     name: str,
     hidden_sizes: List[int],
     num_actions: int,
-    mask_on: Optional[str] = None,
     use_orthogonal: bool = True
   ) -> None:
     """Init.
@@ -28,7 +27,6 @@ class DiscreteAction(Action):
       name: Action name.
       hidden_sizes: Hidden sizes of action decoder network.
       num_actions: Discrete action nums.
-      mask_on: Dependencies for action mask.
       use_orthogonal: Whether use orthogonal to initialization params weight.
         Following https://arxiv.org/abs/2006.05990, we set orthogonal
         initialization scale factor of 0.01 for last layer of policy network
@@ -38,7 +36,6 @@ class DiscreteAction(Action):
     self._hidden_sizes = hidden_sizes
     self._num_actions = num_actions
     self._spec = ArraySpec((num_actions,), dtype=np.int8, name=name)
-    self._mask_on = mask_on
     self._use_orthogonal = use_orthogonal
 
   def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
@@ -81,14 +78,14 @@ class DiscreteAction(Action):
     return distribution.sample(seed=rng)
 
   @property
+  def name(self) -> Optional[str]:
+    """Get action name."""
+    return self._name
+
+  @property
   def num_actions(self) -> int:
     """Get discrete action nums."""
     return self._num_actions
-
-  @property
-  def mask_on(self) -> Optional[str]:
-    """Dependencies for action mask.."""
-    return self._mask_on
 
   @property
   def spec(self) -> ArraySpec:

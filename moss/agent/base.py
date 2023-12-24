@@ -7,7 +7,7 @@ from absl import logging
 
 from moss.core import Agent, Buffer, Predictor
 from moss.env import TimeStep
-from moss.types import AgentState, LoggingData, Reward, StepType, Transition
+from moss.types import LoggingData, Reward, StepType, Transition
 from moss.utils.loggers import Logger
 
 
@@ -36,7 +36,7 @@ class BaseAgent(Agent):
     """Agent reset."""
     raise NotImplementedError
 
-  def step(self, timestep: TimeStep) -> Tuple[AgentState, Reward]:
+  def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
     """Agent step."""
     raise NotImplementedError
 
@@ -44,9 +44,9 @@ class BaseAgent(Agent):
     """Agent take action."""
     raise NotImplementedError
 
-  def inference(self, state: AgentState) -> Any:
+  def inference(self, input_dict: Dict) -> Any:
     """Agent inference."""
-    return self._predictor.inference(state, self._rnn_state)
+    return self._predictor.inference(input_dict, self._rnn_state)
 
   def result(self, idx: int) -> Any:
     """Get inference result async."""

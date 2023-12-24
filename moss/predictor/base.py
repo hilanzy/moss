@@ -12,7 +12,7 @@ from absl import logging
 
 from moss.core import Params, Predictor
 from moss.network import Network
-from moss.types import AgentState, Array, KeyArray, NetOutput, RNNState
+from moss.types import Array, KeyArray, NetOutput, RNNState
 from moss.utils.loggers import Logger
 
 
@@ -38,8 +38,7 @@ class BasePredictor(Predictor):
     self._network = network_maker()
     self._logger = logger_fn(label="Predictor")
     self._rng = jax.random.PRNGKey(seed)
-    self._requests: queue.Queue[Tuple[AgentState, RNNState,
-                                      Future]] = queue.Queue()
+    self._requests: queue.Queue[Tuple[Dict, RNNState, Future]] = queue.Queue()
     self._results: Dict[int, Future] = {}
     self._resp_id: int = 0
     self._params: Optional[Params] = None
@@ -50,47 +49,49 @@ class BasePredictor(Predictor):
 
   @partial(jax.jit, static_argnums=0)
   def _forward(
-    self, params: Params, state: AgentState, rnn_state: RNNState, rng: KeyArray
+    self, params: Params, input_dict: Dict, rnn_state: RNNState, rng: KeyArray
   ) -> Tuple[Dict[str, Array], NetOutput]:
     """Forward."""
     action, net_output = self._network.forward(
-      params, state, rnn_state, rng, False
+      params, input_dict, rnn_state, rng, False
     )
     return action, net_output
 
-  def _batch_request(self) -> Tuple[AgentState, RNNState, List[Future]]:
+  def _batch_request(self) -> Tuple[Dict, RNNState, List[Future]]:
     """Get batch request data."""
-    state_list: List[Any] = []
-    rnn_state_list: List[Any] = []
+    input_dicts: List[Any] = []
+    rnn_states: List[Any] = []
     futures: List[Any] = []
-    while len(state_list) < self._batch_size:
+    while len(input_dicts) < self._batch_size:
       try:
         # The function of timeout is to ensure that there
-        # is at least one vaild data in state_list.
-        timetout = 0.05 if len(state_list) > 0 else None
+        # is at least one vaild data in input_dicts.
+        timetout = 0.05 if len(input_dicts) > 0 else None
         request = self._requests.get(timeout=timetout)
-        state, rnn_state, future = request
-        state_list.append(state)
-        rnn_state_list.append(rnn_state)
+        input_dict, rnn_state, future = request
+        input_dicts.append(input_dict)
+        rnn_states.append(rnn_state)
         futures.append(future)
       except queue.Empty:
         logging.info("Get batch request timeout.")
-        padding_len = self._batch_size - len(state_list)
+        padding_len = self._batch_size - len(input_dicts)
         state_padding = jax.tree_util.tree_map(
-          lambda x: jnp.zeros_like(x), state_list[0]
+          lambda x: jnp.zeros_like(x), input_dicts[0]
         )
         rnn_state_padding = jax.tree_util.tree_map(
-          lambda x: jnp.zeros_like(x), rnn_state_list[0]
+          lambda x: jnp.zeros_like(x), rnn_states[0]
         )
         for _ in range(padding_len):
-          state_list.append(state_padding)
-          rnn_state_list.append(rnn_state_padding)
+          input_dicts.append(state_padding)
+          rnn_states.append(rnn_state_padding)
         break
-    batch_state = jax.tree_util.tree_map(lambda *x: jnp.stack(x), *state_list)
-    batch_rnn_state = jax.tree_util.tree_map(
-      lambda *x: jnp.stack(x), *rnn_state_list
+    batch_input_dict = jax.tree_util.tree_map(
+      lambda *x: jnp.stack(x), *input_dicts
     )
-    return batch_state, batch_rnn_state, futures
+    batch_rnn_state = jax.tree_util.tree_map(
+      lambda *x: jnp.stack(x), *rnn_states
+    )
+    return batch_input_dict, batch_rnn_state, futures
 
   def initial_state(self, batch_size: Optional[int]) -> Any:
     """Get initial state."""
@@ -105,11 +106,11 @@ class BasePredictor(Predictor):
       else:
         self._params = params
 
-  def inference(self, state: AgentState, rnn_state: RNNState) -> int:
+  def inference(self, input_dict: Dict, rnn_state: RNNState) -> int:
     """Inference.
 
     Args:
-      state: processed by Agent, and input to Network.
+      input_dict: processed by Agent, and input to Network.
       rnn_state: the last rnn state input to Network.
     """
     with self._inference_mutex:
@@ -117,7 +118,7 @@ class BasePredictor(Predictor):
       resp_id = self._resp_id
     future: Future = Future()
     self._results[resp_id] = future
-    self._requests.put((state, rnn_state, future))
+    self._requests.put((input_dict, rnn_state, future))
     return resp_id
 
   def result(self, id: int) -> Any:

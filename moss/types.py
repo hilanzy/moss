@@ -25,7 +25,7 @@ History = Any
 class Transition(NamedTuple):
   """Transtion."""
   step_type: StepType
-  state: AgentState
+  input_dict: Dict
   action: Action
   rnn_state: RNNState
   reward: Reward
