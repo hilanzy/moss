@@ -7,6 +7,7 @@ import jax
 import numpy as np
 import optax
 from dm_env import Environment, StepType  # noqa: F401
+from dm_env.specs import Array as SpecArray  # noqa: F401
 from jax.random import KeyArray  # noqa: F401
 
 Array = Union[np.ndarray, jax.Array]

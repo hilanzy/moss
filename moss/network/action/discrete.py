@@ -5,10 +5,9 @@ import distrax
 import haiku as hk
 import jax
 import numpy as np
-from dm_env.specs import Array as ArraySpec
 
 from moss.network.action.base import Action
-from moss.types import Array, KeyArray
+from moss.types import Array, KeyArray, SpecArray
 
 
 class DiscreteAction(Action):
@@ -35,7 +34,7 @@ class DiscreteAction(Action):
     self._name = name
     self._hidden_sizes = hidden_sizes
     self._num_actions = num_actions
-    self._spec = ArraySpec((num_actions,), dtype=np.int8, name=name)
+    self._spec = SpecArray((num_actions,), dtype=np.int8, name=name)
     self._use_orthogonal = use_orthogonal
 
   def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
@@ -88,6 +87,6 @@ class DiscreteAction(Action):
     return self._num_actions
 
   @property
-  def spec(self) -> ArraySpec:
+  def spec(self) -> SpecArray:
     """Get action spec."""
     return self._spec

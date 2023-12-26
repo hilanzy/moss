@@ -3,9 +3,8 @@ import abc
 from typing import Any, Optional
 
 from distrax import DistributionLike
-from dm_env.specs import Array as ArraySpec
 
-from moss.types import Array
+from moss.types import Array, SpecArray
 
 
 class Action(abc.ABC):
@@ -13,16 +12,16 @@ class Action(abc.ABC):
 
   @property
   @abc.abstractmethod
-  def name(self) -> ArraySpec:
+  def name(self) -> SpecArray:
     """Get action name."""
 
   @property
   @abc.abstractmethod
-  def spec(self) -> ArraySpec:
+  def spec(self) -> SpecArray:
     """Action spec."""
 
   @abc.abstractmethod
-  def policy_net(self, inputs: Any, mask: Optional[Array] = None) -> Any:
+  def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
     """Action policy network."""
 
   @classmethod
