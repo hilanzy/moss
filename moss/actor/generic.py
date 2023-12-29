@@ -45,25 +45,24 @@ class GenericActor(Actor):
     timesteps_dict = envs.reset()
     while True:
       actor_step_start = time.time()
-      states_dict = collections.defaultdict(list)
-      rewards_dict = collections.defaultdict(list)
-      responses_dict = collections.defaultdict(list)
+      input_dicts = collections.defaultdict(list)
+      rewards = collections.defaultdict(list)
+      responses = collections.defaultdict(list)
       for env_id, timesteps in timesteps_dict.items():
         for timestep in timesteps:
           ep_id = (env_id, timestep.player_id)
           if ep_id not in agents.keys():
             agents[ep_id] = self._agent_maker(timestep.player_info, agent_logger)
-          state, reward = agents[ep_id].step(timestep)
-          response = agents[ep_id].inference(state)
-          states_dict[env_id].append(state)
-          rewards_dict[env_id].append(reward)
-          responses_dict[env_id].append(response)
+          input_dict, reward = agents[ep_id].step(timestep)
+          response = agents[ep_id].inference(input_dict)
+          input_dicts[env_id].append(input_dict)
+          rewards[env_id].append(reward)
+          responses[env_id].append(response)
       get_result_time = 0.0
       actions_dict = collections.defaultdict(list)
       for env_id, timesteps in timesteps_dict.items():
-        for timestep, state, response, reward in zip(
-          timesteps, states_dict[env_id], responses_dict[env_id],
-          rewards_dict[env_id]
+        for timestep, input_dict, response, reward in zip(
+          timesteps, input_dicts[env_id], responses[env_id], rewards[env_id]
         ):
           ep_id = (env_id, timestep.player_id)
           get_result_start = time.time()
@@ -73,7 +72,7 @@ class GenericActor(Actor):
           actions_dict[env_id].append(take_action)
           transition = Transition(
             step_type=timestep.step_type,
-            state=state,
+            input_dict=input_dict,
             action=action,
             rnn_state=rnn_state,
             reward=reward,

@@ -4,8 +4,8 @@ from typing import Any
 
 import numpy as np
 
+from moss.network import CommonNet
 from moss.network.action import ActionSpec, DiscreteAction
-from moss.network.base import CommonNet
 from moss.network.feature import FeatureSet, FeatureSpec, ImageFeature
 from moss.network.feature.encoder import (
   Conv2DConfig,

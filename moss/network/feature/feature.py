@@ -4,10 +4,11 @@ from typing import Any, Callable, Optional, Tuple, Type
 import jax
 import jax.numpy as jnp
 import numpy as np
-from dm_env.specs import Array as ArraySpec
+
+from moss.types import SpecArray
 
 
-class BaseFeature(ArraySpec):
+class BaseFeature(SpecArray):
   """Base feature."""
 
   def __init__(

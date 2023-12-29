@@ -124,7 +124,7 @@ class ImpalaLearner(BaseLearner):
     """Impala loss."""
     rnn_state = jax.tree_map(lambda x: x[0], data.rnn_state)
     _, net_output = self._network.forward(
-      params, data.state, rnn_state, jax.random.PRNGKey(0), True
+      params, data.input_dict, rnn_state, jax.random.PRNGKey(0), True
     )
 
     actions, rewards = data.action, data.reward

@@ -5,7 +5,7 @@ from typing import Any, Dict
 from distrax import DistributionLike
 
 from moss.network.action.base import Action
-from moss.types import Array, KeyArray
+from moss.types import Array, KeyArray, SpecArray
 
 ActionDistribution = collections.namedtuple(
   "ActionDistribution", ["log_prob", "prob", "entropy"]
@@ -26,7 +26,7 @@ class ActionSpec(object):
     return self._actions
 
   @property
-  def action_spec(self) -> Any:
+  def action_spec(self) -> Dict[str, SpecArray]:
     """Action specs."""
     return self._spec
 
