@@ -90,7 +90,7 @@ class CTDEModule(hk.Module):
       else:
         embedding = encoder(processor(feature))
       global_embeddings[name] = embedding
-    global_embedding = jnp.concatenate(list(global_embeddings.values()), axis=0)
+    global_embedding = jnp.concatenate(list(global_embeddings.values()), axis=-1)
 
     if training:
       batch_value_apply = hk.BatchApply(self._value_net)
