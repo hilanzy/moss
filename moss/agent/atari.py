@@ -5,9 +5,8 @@ import jax.numpy as jnp
 
 from moss.agent.base import BaseAgent
 from moss.core import Buffer, Predictor
-from moss.env import TimeStep
 from moss.network.keys import AGENT_STATE
-from moss.types import LoggingData, Reward
+from moss.types import LoggingData, Reward, TimeStep
 from moss.utils.loggers import Logger
 
 

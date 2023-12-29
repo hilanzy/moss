@@ -2,9 +2,8 @@
 import collections
 import os
 from functools import partial
-from typing import Any, Callable, List
+from typing import Any, Callable
 
-import jax
 import launchpad as lp
 from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
@@ -15,7 +14,7 @@ from examples.vizdoom.utils import vizdoom_env_maker
 from moss.actor import GenericActor
 from moss.agent.vizdoom import DoomAgent
 from moss.buffer import QueueBuffer
-from moss.env import EnvpoolVectorEnv, TimeStep
+from moss.env import EnvpoolVectorEnv
 from moss.learner import ImpalaLearner
 from moss.predictor import BasePredictor
 from moss.utils.loggers import Logger, experiment_logger_factory
@@ -101,44 +100,21 @@ def make_lp_program() -> Any:
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
-
-    def env_wrapper() -> Any:
-      """Rnv function."""
-      return vizdoom_env_maker(
-        map_id,
-        num_envs,
-        cfg_path,
-        wad_path,
-        stack_num=stack_num,
-        num_threads=num_threads
-      )
-
-    def process_fn(env_id: int, timesteps: Any) -> Any:
-      """Timesteps process function."""
-
-      def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
-        """Split batch timestep by env id."""
-        size = batch.step_type.size
-        timesteps = [
-          jax.tree_util.tree_map(lambda x: x[i], batch)  # noqa: B023
-          for i in range(size)
-        ]
-        return timesteps
-
-      timesteps = split_batch_timestep(timesteps)
-      new_timesteps = []
-      for i, timestep in enumerate(timesteps):
-        new_timesteps.append(TimeStep(env_id, i, None, *timestep))
-      return new_timesteps
-
-    return EnvpoolVectorEnv(env_wrapper, process_fn)
+    return EnvpoolVectorEnv(
+      map_id,
+      num_envs=num_envs,
+      cfg_path=cfg_path,
+      wad_path=wad_path,
+      stack_num=stack_num,
+      num_threads=num_threads
+    )
 
   def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_wrapper(player_info: Any, logger: Logger) -> DoomAgent:
+    def agent_wrapper(timestep: Any, logger: Logger) -> DoomAgent:
       """Return a agent."""
-      del player_info
+      del timestep
       return DoomAgent(unroll_len, buffer, predictor, logger)
 
     return agent_wrapper

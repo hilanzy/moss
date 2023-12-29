@@ -1,28 +1,31 @@
 """Base environment worker."""
 import abc
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 from moss.env.base import BaseEnv
+from moss.types import TimeStep
 
 try:
   import ray
 except ImportError:
   ray = None  # type: ignore
 
+AgentID = Any
+
 
 class BaseEnvWorker(abc.ABC):
   """Base environment worker."""
 
-  def __init__(self, env_maker: Callable[[], BaseEnv]) -> None:
+  def __init__(self, env_maker: Callable[[], BaseEnv], **kwargs: Any) -> None:
     """Init."""
-    self._env = env_maker()
+    self._env = env_maker(**kwargs)
 
   @abc.abstractmethod
-  def reset(self) -> Any:
+  def reset(self) -> Dict[AgentID, TimeStep]:
     """Reset."""
 
   @abc.abstractmethod
-  def step(self, actions: Any) -> Any:
+  def step(self, actions: Any) -> Dict[AgentID, TimeStep]:
     """Step."""
 
   @property
@@ -34,9 +37,9 @@ class BaseEnvWorker(abc.ABC):
 class DummyWorker(BaseEnvWorker):
   """Dummy environment worker."""
 
-  def __init__(self, env_maker: Callable[[], BaseEnv]) -> None:
+  def __init__(self, env_maker: Callable[[], BaseEnv], **kwargs: Any) -> None:
     """Init."""
-    super().__init__(env_maker)
+    super().__init__(env_maker, **kwargs)
 
   def reset(self) -> Any:
     """Dummy worker reset."""
@@ -50,14 +53,15 @@ class DummyWorker(BaseEnvWorker):
 class RayEnvWorker(BaseEnvWorker):
   """Ray env worker."""
 
-  def __init__(self, env_maker: Callable[[], BaseEnv]) -> None:
+  def __init__(self, env_maker: Callable[[], BaseEnv], **kwargs: Any) -> None:
     """Init."""
     if ray is None:
       raise ImportError(
         "Please install ray to support RayVectorEnv: pip install ray"
       )
-    self._env =\
-      ray.remote(num_cpus=0)(DummyWorker).remote(env_maker)  # type: ignore
+    self._env = ray.remote(num_cpus=0)(DummyWorker).remote(
+      env_maker, **kwargs
+    )  # type: ignore
 
   def reset(self) -> Any:
     """Call ray env worker reset remote."""

@@ -4,7 +4,6 @@ import time
 from typing import Callable, Dict, Tuple
 
 import jax
-import numpy as np
 from absl import logging
 
 from moss.agent import BaseAgent
@@ -49,27 +48,30 @@ class GenericActor(Actor):
       rewards = collections.defaultdict(list)
       responses = collections.defaultdict(list)
       for env_id, timesteps in timesteps_dict.items():
-        for timestep in timesteps:
-          ep_id = (env_id, timestep.player_id)
+        for player_id, timestep in timesteps.items():
+          # NOTE: To avoid confusion between environment agent and rl agent,
+          # we refer to the agent_id as a player_id.
+          ep_id = (env_id, player_id)
           if ep_id not in agents.keys():
-            agents[ep_id] = self._agent_maker(timestep.player_info, agent_logger)
+            agents[ep_id] = self._agent_maker(timestep, agent_logger)
           input_dict, reward = agents[ep_id].step(timestep)
           response = agents[ep_id].inference(input_dict)
           input_dicts[env_id].append(input_dict)
           rewards[env_id].append(reward)
           responses[env_id].append(response)
       get_result_time = 0.0
-      actions_dict = collections.defaultdict(list)
+      action_dict = collections.defaultdict(dict)  # type: ignore
       for env_id, timesteps in timesteps_dict.items():
-        for timestep, input_dict, response, reward in zip(
-          timesteps, input_dicts[env_id], responses[env_id], rewards[env_id]
+        for (player_id, timestep), input_dict, response, reward in zip(
+          timesteps.items(), input_dicts[env_id], responses[env_id],
+          rewards[env_id]
         ):
-          ep_id = (env_id, timestep.player_id)
+          ep_id = (env_id, player_id)
           get_result_start = time.time()
           action, logits, value, rnn_state = agents[ep_id].result(response)
           get_result_time += time.time() - get_result_start
           take_action = agents[ep_id].take_action(action)
-          actions_dict[env_id].append(take_action)
+          action_dict[env_id][player_id] = take_action
           transition = Transition(
             step_type=timestep.step_type,
             input_dict=input_dict,
@@ -80,11 +82,8 @@ class GenericActor(Actor):
             behaviour_value=value,
           )
           agents[ep_id].add(transition)
-      actions = {
-        env_id: np.stack(actions) for env_id, actions in actions_dict.items()
-      }
       envs_step_start = time.time()
-      timesteps_dict = envs.step(actions)
+      timesteps_dict = envs.step(action_dict)
       self._logger.write(
         {
           "time/get result": get_result_time,
