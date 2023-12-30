@@ -135,13 +135,13 @@ class BasePredictor(Predictor):
     rng = self._rng
     while True:
       get_batch_req_start = time.time()
-      batch_state, batch_rnn_state, futures = self._batch_request()
+      batch_input_dict, batch_rnn_state, futures = self._batch_request()
       get_batch_req_time = time.time() - get_batch_req_start
 
       forward_start = time.time()
       rng, sub_rng = jax.random.split(rng)
       action, net_output = self._forward(
-        self._params, batch_state, batch_rnn_state, sub_rng
+        self._params, batch_input_dict, batch_rnn_state, sub_rng
       )
       (action, net_output) = jax.device_get((action, net_output))
       forward_time = time.time() - forward_start
