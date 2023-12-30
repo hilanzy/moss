@@ -51,6 +51,14 @@ class EnvpoolEnv(BaseEnv):
     """Action process."""
     return np.stack(list(action.values()))
 
+  def action_spec(self) -> Any:
+    """Get action spec."""
+    return self._env.action_spec()
+
+  def observation_spec(self) -> Any:
+    """Get observation spec."""
+    return self._env.observation_spec()
+
   def close(self) -> None:
     """Close env and release resources."""
     self._env.close()

@@ -1,13 +1,15 @@
-"""Pettingzoo env wrapper."""
-from typing import Any, Callable, Dict, Tuple
+"""PettingZoo env wrapper."""
+from typing import Any, Callable, Dict, List, Tuple
 
 from dm_env import StepType, TimeStep
 from pettingzoo import ParallelEnv
 from pettingzoo.utils.wrappers import BaseParallelWrapper
 
+from moss.types import Environment
+
 
 class AutoResetWrapper(BaseParallelWrapper):
-  """Pettingzoo auto reset wrapper."""
+  """PettingZoo auto reset wrapper."""
 
   def __init__(self, env: ParallelEnv) -> None:
     """Init."""
@@ -41,7 +43,7 @@ class AutoResetWrapper(BaseParallelWrapper):
     return obs, reward, terminated, truncated, info
 
 
-class PettingzooToDeepmindWrapper(object):
+class PettingZooToDeepmindWrapper(Environment):
   """Wrapper `pettingzoo.ParallelEnv` to `dm_env.Environment`."""
 
   def __init__(self, env_fn: Callable, **kwargs: Any) -> None:
@@ -94,6 +96,11 @@ class PettingzooToDeepmindWrapper(object):
   def observation_spec(self) -> Any:
     """Get observation spec."""
     return self.env.observation_space
+
+  @property
+  def agents(self) -> List[str]:
+    """Get all agent id."""
+    return self.env.agents
 
   def close(self) -> None:
     """Close env and release resources."""

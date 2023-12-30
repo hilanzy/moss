@@ -63,6 +63,22 @@ class PettingZooEnv(BaseEnv):
     """Get all agent id."""
     return self._env.agents
 
+  def action_spec(self) -> Any:
+    """Get agent action spec by agent id."""
+    act_spec = {
+      agent_id: self._env.action_space(agent_id)
+      for agent_id in self.agents
+    }
+    return act_spec
+
+  def observation_spec(self) -> Any:
+    """Get agent observation spec by agent id."""
+    obs_spec = {
+      agent_id: self._env.observation_space(agent_id)
+      for agent_id in self.agents
+    }
+    return obs_spec
+
   def close(self) -> None:
     """Close env and release resources."""
     self._env.close()
