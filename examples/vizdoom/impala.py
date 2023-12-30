@@ -9,10 +9,10 @@ from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
+from examples.vizdoom.agent import DoomAgent
 from examples.vizdoom.network import network_maker
 from examples.vizdoom.utils import vizdoom_env_maker
 from moss.actor import GenericActor
-from moss.agent.vizdoom import DoomAgent
 from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv
 from moss.learner import ImpalaLearner
