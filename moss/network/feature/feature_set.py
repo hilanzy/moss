@@ -43,11 +43,12 @@ class FeatureSet(object):
   def process(self, feature_inputs: Dict) -> Array:
     """Feature inputs process."""
     output_list = []
-    for name, inputs in feature_inputs.items():
-      feature = self._features.get(name)
-      if feature is None:
+    for name, feature in self._features.items():
+      inputs = feature_inputs.get(name)
+      if inputs is None:
         raise ValueError(
-          f"Got unexpected feature name `{name}` in `{self.name}` feature set."
+          f"Not find the inputs named `{name}` in `{self.name}` feature set, "
+          "please check you inputs."
         )
       output_list.append(feature.process(inputs))
     output = jnp.concatenate(output_list, axis=0)

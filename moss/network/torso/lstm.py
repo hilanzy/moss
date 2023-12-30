@@ -18,7 +18,7 @@ class LSTMTorso(hk.RNNCore):
   def __call__(self, inputs: Dict[str, Any],
                state: hk.LSTMState) -> Tuple[Array, hk.LSTMState]:
     """Call."""
-    torso_input = jnp.concatenate(list(inputs.values()), axis=0)
+    torso_input = jnp.concatenate(list(inputs.values()), axis=-1)
     torso_out, new_state = self._core(torso_input, state)
     return torso_out, new_state
 
