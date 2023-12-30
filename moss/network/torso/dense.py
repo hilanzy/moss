@@ -33,6 +33,6 @@ class DenseTorso(hk.Module):
       mlp_layers.append(hk.Linear(hidden_size, w_init=w_init))
       mlp_layers.append(jax.nn.relu)
     torso_net = hk.Sequential(mlp_layers)
-    torso_input = jnp.concatenate(list(inputs.values()), axis=0)
+    torso_input = jnp.concatenate(list(inputs.values()), axis=-1)
     torso_out = torso_net(torso_input)
     return torso_out, rnn_state
