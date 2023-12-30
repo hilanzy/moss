@@ -40,7 +40,7 @@ class ScalarFeature(BaseFeature):
     preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
-    super().__init__((1,), dtype, name, preprocess_fn)
+    super().__init__((), dtype, name, preprocess_fn)
 
   def process(self, inputs: Any) -> Any:
     """Feature process."""
@@ -75,7 +75,7 @@ class OneHotFeature(BaseFeature):
     preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
-    super().__init__((num_classes,), dtype, name, preprocess_fn)
+    super().__init__((), dtype, name, preprocess_fn)
     self._num_classes = num_classes
 
   def process(self, inputs: Any) -> Any:
