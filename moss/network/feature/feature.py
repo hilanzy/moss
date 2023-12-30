@@ -16,18 +16,18 @@ class BaseFeature(SpecArray):
     shape: Tuple,
     dtype: Type = np.float32,
     name: Optional[str] = None,
-    process_fn: Optional[Callable[..., Any]] = None
+    preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     super().__init__(shape, dtype, name)
-    self._process_fn = process_fn
+    self._preprocess_fn = preprocess_fn
 
   def process(self, inputs: Any) -> Any:
     """Feature process."""
-    if self._process_fn is None:
-      return jnp.array(inputs)
-    feature = self._process_fn(inputs)
-    return jnp.array(feature)
+    if self._preprocess_fn is not None:
+      inputs = self._preprocess_fn(inputs)
+    feature = jnp.array(inputs)
+    return feature
 
 
 class ScalarFeature(BaseFeature):
@@ -37,10 +37,17 @@ class ScalarFeature(BaseFeature):
     self,
     dtype: Type = np.float32,
     name: Optional[str] = "ScalarFeature",
-    process_fn: Optional[Callable[..., Any]] = None
+    preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
-    super().__init__((1,), dtype, name, process_fn)
+    super().__init__((1,), dtype, name, preprocess_fn)
+
+  def process(self, inputs: Any) -> Any:
+    """Feature process."""
+    if self._process_fn is not None:
+      inputs = self._process_fn(inputs)
+    feature = jnp.array([inputs])
+    return feature
 
 
 class VectorFeature(BaseFeature):
@@ -51,10 +58,10 @@ class VectorFeature(BaseFeature):
     length: int,
     dtype: Type = np.float32,
     name: Optional[str] = "VectorFeature",
-    process_fn: Optional[Callable[..., Any]] = None
+    preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
-    super().__init__((length,), dtype, name, process_fn)
+    super().__init__((length,), dtype, name, preprocess_fn)
 
 
 class OneHotFeature(BaseFeature):
@@ -65,17 +72,17 @@ class OneHotFeature(BaseFeature):
     num_classes: int,
     dtype: Type = np.int8,
     name: Optional[str] = "OneHotFeature",
-    process_fn: Optional[Callable[..., Any]] = None
+    preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
-    super().__init__((num_classes,), dtype, name, process_fn)
+    super().__init__((num_classes,), dtype, name, preprocess_fn)
     self._num_classes = num_classes
 
   def process(self, inputs: Any) -> Any:
     """Feature process."""
-    if self._process_fn is None:
-      return jnp.array(inputs)
-    feature = self._process_fn(inputs)
+    if self._preprocess_fn is not None:
+      inputs = self._preprocess_fn(inputs)
+    feature = jnp.array(inputs)
     return jax.nn.one_hot(feature, num_classes=self.num_classes)
 
   @property
@@ -95,7 +102,7 @@ class ImageFeature(BaseFeature):
     data_format: str,
     dtype: Type,
     name: Optional[str] = "ImageFeature",
-    process_fn: Optional[Callable[..., Any]] = None
+    preprocess_fn: Optional[Callable[..., Any]] = None
   ) -> None:
     """Init."""
     if data_format == "NHWC":
@@ -106,4 +113,4 @@ class ImageFeature(BaseFeature):
       raise ValueError(
         f"data_format value must be `NHWC` or `NCHW`, but got `{data_format}`."
       )
-    super().__init__(shape, dtype, name, process_fn)
+    super().__init__(shape, dtype, name, preprocess_fn)
