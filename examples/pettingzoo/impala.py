@@ -65,13 +65,12 @@ def make_lp_program() -> Any:
   dummy_env = PettingZooEnv(task_id)
   obs_spec: Any = dummy_env.observation_spec()
   action_spec: Any = dummy_env.action_spec()
-  obs_spec, action_spec = None, None
   use_resnet = FLAGS.use_resnet
   use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
-  logging.info(f"Observation shape: {obs_spec}")
-  logging.info(f"Action space: {action_spec}")
+  logging.info(f"Observation spec: {obs_spec}")
+  logging.info(f"Action spec: {action_spec}")
 
   def env_maker() -> Any:
     """Env maker."""

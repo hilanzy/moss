@@ -1,12 +1,11 @@
 """PettingZoo agent."""
 from typing import Any, Dict, Tuple
 
-import cv2
 import jax.numpy as jnp
 
 from moss.agent.base import BaseAgent
 from moss.core import Buffer, Predictor
-from moss.network.keys import AGENT_STATE, GLOBAL_STATE
+from moss.network.keys import AGENT_STATE
 from moss.types import LoggingData, Reward, TimeStep
 from moss.utils.loggers import Logger
 
@@ -63,21 +62,19 @@ class PettingZooAgent(BaseAgent):
         Returns must be serializable Python object to ensure that it can
         exchange data between launchpad's nodes.
     """
-    obs = timestep.observation[..., -1:]
+    obs = timestep.observation.obs
+    info = timestep.observation.info
     if self._data_format == "NCHW":
       obs = jnp.transpose(obs, axes=(2, 1, 0))
-    obs = cv2.resize(obs, (42, 42), interpolation=cv2.INTER_AREA)
-    obs = jnp.expand_dims(obs, -1)
-    state = {"pettingzoo_frame": {"frame": jnp.array(obs)}}
-    global_state = {
-      "first_frame": {
+    state = {
+      "pettingzoo_frame": {
         "frame": jnp.array(obs)
       },
-      "second_frame": {
-        "frame": jnp.array(obs)
+      "player": {
+        "id": 0 if info.get("agent_id") == "first_0" else 1
       },
     }
-    input_dict = {AGENT_STATE: state, GLOBAL_STATE: global_state}
+    input_dict = {AGENT_STATE: state}
     reward = timestep.reward * 1.0
     self._episode_steps += 1
     self._rewards += reward

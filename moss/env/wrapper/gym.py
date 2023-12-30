@@ -1,4 +1,5 @@
 """Gym wrapper."""
+from collections import namedtuple
 from typing import Any, Dict, SupportsFloat, Tuple
 
 import gymnasium as gym
@@ -6,6 +7,8 @@ from dm_env import StepType, TimeStep
 from gymnasium.core import Env
 
 from moss.types import Environment
+
+Observation = namedtuple("Observation", ["obs", "info"])
 
 
 class AutoResetWrapper(gym.Wrapper, gym.utils.RecordConstructorArgs):
@@ -56,18 +59,18 @@ class GymToDeepmindWrapper(Environment):
 
   def reset(self, **kwargs: Any) -> TimeStep:
     """Env reset."""
-    observation, _ = self._env.reset(**kwargs)
+    obs, info = self._env.reset(**kwargs)
     timestep = TimeStep(
       step_type=StepType.FIRST,
       reward=0.,
       discount=1.,
-      observation=observation,
+      observation=Observation(obs, info),
     )
     return timestep
 
   def step(self, action: Any) -> TimeStep:
     """Env step."""
-    observation, reward, terminated, truncated, info = self._env.step(action)
+    obs, reward, terminated, truncated, info = self._env.step(action)
     if terminated:
       step_type = StepType.LAST
       discount = 0.0
@@ -81,16 +84,14 @@ class GymToDeepmindWrapper(Environment):
       step_type=step_type,
       reward=reward,
       discount=discount,
-      observation=observation,
+      observation=Observation(obs, info),
     )
     return timestep
 
-  @property
   def action_spec(self) -> Any:
     """Get action spec."""
     return self._env.action_space
 
-  @property
   def observation_spec(self) -> Any:
     """Get observation spec."""
     return self._env.observation_space

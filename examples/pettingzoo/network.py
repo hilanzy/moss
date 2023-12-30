@@ -4,10 +4,16 @@ from typing import Any
 
 import numpy as np
 
-from moss.network import CTDENet
+from moss.network import CommonNet
 from moss.network.action import ActionSpec, DiscreteAction
-from moss.network.feature import FeatureSet, FeatureSpec, ImageFeature
+from moss.network.feature import (
+  FeatureSet,
+  FeatureSpec,
+  ImageFeature,
+  OneHotFeature,
+)
 from moss.network.feature.encoder import (
+  CommonEncoder,
   Conv2DConfig,
   ImageFeatureEncoder,
   ResnetConfig,
@@ -35,38 +41,42 @@ def network_maker(
   use_orthogonal: bool = True,
 ) -> Any:
   """Atari network maker."""
-  # channel, height, width = obs_spec.obs.shape
-  # num_actions = action_spec.num_values
-  channel, height, width = 1, 42, 42
-  num_actions = 6
+  height, width, channel = obs_spec["first_0"].shape
+  num_actions = action_spec["first_0"].n
 
-  def frame_feature_set(name):
-    feature_set = FeatureSet(
-      name=name,
-      features={
-        "frame":
-          ImageFeature(
-            height, width, channel, data_format, np.int8, "frame",
-            lambda x: x / 255.
-          )
-      },
-      encoder_net_maker=lambda: ImageFeatureEncoder(
-        "frame_encoder",
-        data_format,
-        use_resnet=use_resnet,
-        resnet_config=resnet_default_config,
-        conv2d_config=conv2d_default_config,
-        use_orthogonal=use_orthogonal
-      )
+  pettingzoo_frame = FeatureSet(
+    name="pettingzoo_frame",
+    features={
+      "frame":
+        ImageFeature(
+          height, width, channel, data_format, np.int8, "frame",
+          lambda x: x / 255.
+        )
+    },
+    encoder_net_maker=lambda: ImageFeatureEncoder(
+      "frame_encoder",
+      data_format,
+      use_resnet=use_resnet,
+      resnet_config=resnet_default_config,
+      conv2d_config=conv2d_default_config,
+      use_orthogonal=use_orthogonal
     )
-    return feature_set
+  )
+  player = FeatureSet(
+    name="player",
+    features={
+      "id": OneHotFeature(2, name="id"),
+    },
+    encoder_net_maker=lambda: CommonEncoder(
+      "player_encoder",
+      hidden_sizes=[32],
+      use_orthogonal=use_orthogonal,
+    )
+  )
 
   feature_sets = {
-    "pettingzoo_frame": frame_feature_set("pettingzoo_frame"),
-  }
-  global_feature_sets = {
-    "first_frame": frame_feature_set("first_frame"),
-    "second_frame": frame_feature_set("second_frame"),
+    "pettingzoo_frame": pettingzoo_frame,
+    "player": player,
   }
   actions = {
     "pettingzoo_action":
@@ -75,9 +85,8 @@ def network_maker(
 
   torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
   value_net_maker = partial(DenseValue, "value", [512, 32], use_orthogonal)
-  return CTDENet(
+  return CommonNet(
     feature_spec=FeatureSpec(feature_sets),
-    global_feature_spec=FeatureSpec(global_feature_sets),
     action_spec=ActionSpec(actions),
     torso_net_maker=torso_net_maker,
     value_net_maker=value_net_maker,
