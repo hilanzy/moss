@@ -16,21 +16,34 @@ for env_id, env_module in all_environments.items():
   all_envs[env_id.split("/")[-1]] = env_module
 
 
-def make_pettingzoo(task_id: str, **kwargs: Any) -> PettingZooToDeepmindWrapper:
+def make_pettingzoo(
+  task_id: str,
+  height: int = 84,
+  width: int = 84,
+  **kwargs: Any
+) -> PettingZooToDeepmindWrapper:
   """Pettingzoo env maker."""
   task_id = task_id.replace("-", "_").lower()
   if task_id not in all_envs:
     raise ValueError(f"Not support env `{task_id}`, please check you env name.")
   env_module = all_envs[task_id]
-  return PettingZooToDeepmindWrapper(env_module.parallel_env, **kwargs)
+  return PettingZooToDeepmindWrapper(
+    env_module.parallel_env, height=height, width=width, **kwargs
+  )
 
 
 class PettingZooEnv(BaseEnv):
   """PetingZoo env."""
 
-  def __init__(self, task_id: str, **kwargs: Any) -> None:
+  def __init__(
+    self,
+    task_id: str,
+    height: int = 84,
+    width: int = 84,
+    **kwargs: Any
+  ) -> None:
     """Init."""
-    self._env = make_pettingzoo(task_id, **kwargs)
+    self._env = make_pettingzoo(task_id, height, width, **kwargs)
 
   def reset(self) -> Dict[AgentID, TimeStep]:
     """Reset."""
