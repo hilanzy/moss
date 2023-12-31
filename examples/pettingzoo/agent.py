@@ -1,18 +1,17 @@
-"""Atari agent."""
+"""PettingZoo agent."""
 from typing import Any, Dict, Tuple
 
 import jax.numpy as jnp
 
 from moss.agent.base import BaseAgent
 from moss.core import Buffer, Predictor
-from moss.env import TimeStep
 from moss.network.keys import AGENT_STATE
-from moss.types import LoggingData, Reward
+from moss.types import LoggingData, Reward, TimeStep
 from moss.utils.loggers import Logger
 
 
-class AtariAgent(BaseAgent):
-  """Atari agent."""
+class PettingZooAgent(BaseAgent):
+  """PettingZoo agent."""
 
   def __init__(
     self,
@@ -29,10 +28,10 @@ class AtariAgent(BaseAgent):
       buffer: Agent replay buffer.
       predictor: Predictor.
       logger: Logger.
-      data_format: Atari image data format, must be `NHWC` or `NCHW`, default is
-        `NHWC`.
+      data_format: PettingZoo image data format, must be `NHWC` or `NCHW`,
+        default is `NHWC`.
     """
-    super().__init__("Atari", unroll_length, buffer, predictor, logger)
+    super().__init__("PettingZoo", unroll_length, buffer, predictor, logger)
     if data_format not in ["NHWC", "NCHW"]:
       raise ValueError(
         f"data_format must be `NHWC` or `NCHW`, but got `{data_format}`."
@@ -64,15 +63,23 @@ class AtariAgent(BaseAgent):
         exchange data between launchpad's nodes.
     """
     obs = timestep.observation.obs
-    if self._data_format == "NHWC":
-      obs = jnp.transpose(obs, axes=(1, 2, 0))
-    state = {"atari_frame": {"frame": jnp.array(obs)}}
+    info = timestep.observation.info
+    if self._data_format == "NCHW":
+      obs = jnp.transpose(obs, axes=(2, 1, 0))
+    state = {
+      "pettingzoo_frame": {
+        "frame": jnp.array(obs)
+      },
+      "player": {
+        "id": 0 if info.get("agent_id") == "first_0" else 1
+      },
+    }
     input_dict = {AGENT_STATE: state}
-    reward = timestep.reward
+    reward = timestep.reward * 1.0
     self._episode_steps += 1
     self._rewards += reward
     return input_dict, reward
 
   def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
-    return action["atari_action"]
+    return action["pettingzoo_action"]

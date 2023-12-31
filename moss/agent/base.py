@@ -6,8 +6,7 @@ import jax.numpy as jnp
 from absl import logging
 
 from moss.core import Agent, Buffer, Predictor
-from moss.env import TimeStep
-from moss.types import LoggingData, Reward, StepType, Transition
+from moss.types import LoggingData, Reward, StepType, TimeStep, Transition
 from moss.utils.loggers import Logger
 
 

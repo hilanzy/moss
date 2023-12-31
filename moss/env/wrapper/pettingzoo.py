@@ -1,18 +1,25 @@
-"""Pettingzoo env wrapper."""
-from typing import Any, Callable, Dict, Tuple
+"""PettingZoo env wrapper."""
+from collections import namedtuple
+from typing import Any, Callable, Dict, List, Tuple
 
 from dm_env import StepType, TimeStep
 from pettingzoo import ParallelEnv
 from pettingzoo.utils.wrappers import BaseParallelWrapper
 
+from moss.types import Environment
+
+AgentID = Any
+Observation = namedtuple("Observation", ["obs", "info"])
+
 
 class AutoResetWrapper(BaseParallelWrapper):
-  """Pettingzoo auto reset wrapper."""
+  """PettingZoo auto reset wrapper."""
 
   def __init__(self, env: ParallelEnv) -> None:
     """Init."""
     super().__init__(env)
     self._need_reset: bool = False
+    self.agents = self.env.unwrapped.agents
 
   def step(self, action: Any) -> Tuple[Dict, Dict, Dict, Dict, Dict]:
     """Env step."""
@@ -41,16 +48,24 @@ class AutoResetWrapper(BaseParallelWrapper):
     return obs, reward, terminated, truncated, info
 
 
-class PettingzooToDeepmindWrapper(object):
+class PettingZooToDeepmindWrapper(Environment):
   """Wrapper `pettingzoo.ParallelEnv` to `dm_env.Environment`."""
 
   def __init__(self, env_fn: Callable, **kwargs: Any) -> None:
     """Init."""
     self.env = AutoResetWrapper(env_fn(**kwargs))
+    self._action_spec = {
+      agent_id: self.env.action_space(agent_id) for agent_id in self.agents
+    }
+    self._observation_spec = {
+      agent_id: self.env.observation_space(agent_id) for agent_id in self.agents
+    }
 
   def reset(self, **kwargs: Any) -> TimeStep:
     """Env reset."""
-    observation, _ = self.env.reset(**kwargs)
+    obs, info = self.env.reset(**kwargs)
+    for agent_id in self.agents:
+      info[agent_id]["agent_id"] = agent_id
     step_type = {agent_id: StepType.FIRST for agent_id in self.env.agents}
     reward = {agent_id: 0. for agent_id in self.env.agents}
     discount = {agent_id: 1. for agent_id in self.env.agents}
@@ -58,13 +73,15 @@ class PettingzooToDeepmindWrapper(object):
       step_type=step_type,
       reward=reward,
       discount=discount,
-      observation=observation,
+      observation=Observation(obs, info),
     )
     return timestep
 
   def step(self, action: Any) -> TimeStep:
     """Env step."""
-    observation, reward, terminated, truncated, info = self.env.step(action)
+    obs, reward, terminated, truncated, info = self.env.step(action)
+    for agent_id in self.agents:
+      info[agent_id]["agent_id"] = agent_id
     step_type, discount = {}, {}
     for agent_id in self.env.agents:
       if terminated[agent_id]:
@@ -81,19 +98,22 @@ class PettingzooToDeepmindWrapper(object):
       step_type=step_type,
       reward=reward,
       discount=discount,
-      observation=observation,
+      observation=Observation(obs, info),
     )
     return timestep
 
-  @property
   def action_spec(self) -> Any:
     """Get action spec."""
-    return self.env.action_space
+    return self._action_spec
 
-  @property
   def observation_spec(self) -> Any:
     """Get observation spec."""
-    return self.env.observation_space
+    return self._observation_spec
+
+  @property
+  def agents(self) -> List[str]:
+    """Get all agent id."""
+    return self.env.agents
 
   def close(self) -> None:
     """Close env and release resources."""

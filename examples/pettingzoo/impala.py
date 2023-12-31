@@ -1,37 +1,34 @@
-"""Atati ppo example."""
+"""PettingZoo impala example."""
 import os
 from functools import partial
 from typing import Any, Callable
 
-import envpool
 import launchpad as lp
 from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
-from examples.atari.agent import AtariAgent
-from examples.atari.network import network_maker
+from examples.pettingzoo.agent import PettingZooAgent
+from examples.pettingzoo.network import network_maker
 from moss.actor import GenericActor
 from moss.buffer import QueueBuffer
-from moss.env import EnvpoolVectorEnv
-from moss.learner import PPOLearner
+from moss.env import DummyVectorEnv
+from moss.env.pettingzoo import PettingZooEnv
+from moss.learner import ImpalaLearner
 from moss.predictor import BasePredictor
-from moss.types import Environment
 from moss.utils.loggers import Logger, experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
-flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
-flags.DEFINE_integer("stack_num", 1, "Stack nums.")
-flags.DEFINE_integer("num_envs", 32, "Num of envs.")
-flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
+flags.DEFINE_string("task_id", "pong_v3", "Task name.")
+flags.DEFINE_integer("num_envs", 10, "Num of envs.")
 flags.DEFINE_bool(
-  "use_resnet", False, "Use resnet or conv2d encoder for atari image."
+  "use_resnet", False, "Use resnet or conv2d encoder for petingzoo image."
 )
 flags.DEFINE_bool(
   "use_orthogonal", True, "Use orthogonal to initialization params weight."
 )
 flags.DEFINE_integer("num_actors", 16, "Num of actors.")
-flags.DEFINE_integer("num_predictors", 4, "Num of predictors.")
+flags.DEFINE_integer("num_predictors", 2, "Num of predictors.")
 flags.DEFINE_integer("unroll_len", 16, "Unroll length.")
 flags.DEFINE_integer("predict_batch_size", 32, "Predict batch size.")
 flags.DEFINE_integer("training_batch_size", 64, "Training batch size.")
@@ -43,10 +40,10 @@ flags.DEFINE_integer("save_interval", 500, "Save interval(by train steps).")
 flags.DEFINE_float("learning_rate", 5e-4, "Learning rate.")
 flags.DEFINE_float("gamma", 0.99, "Reward discount rate.")
 flags.DEFINE_float("gae_lambda", 0.95, "GAE lambda.")
+flags.DEFINE_float("rho_clip", 0.9, "Clip threshold for importance ratios.")
 flags.DEFINE_float(
-  "pg_clip_epsilon", 0.1, "Epsilon for policy gradient clipping."
+  "pg_rho_clip", 0.9, "Clip threshold for policy gradient importance ratios."
 )
-flags.DEFINE_float("value_clip_epsilon", 0.2, "Epsilon for value clipping.")
 flags.DEFINE_float("critic_coef", 0.25, "Critic coefficient.")
 flags.DEFINE_float("entropy_coef", 0.01, "Entropy coefficient.")
 flags.DEFINE_integer("buffer_size", 2048, "Replay buffer size.")
@@ -62,36 +59,30 @@ def make_lp_program() -> Any:
   """Make launchpad program."""
   (exp_uid,) = get_unique_id()
   task_id = FLAGS.task_id
-  stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
-  num_threads = FLAGS.num_threads
   unroll_len = FLAGS.unroll_len
 
-  dummy_env: Environment = envpool.make_dm(
-    task_id, stack_num=stack_num, num_envs=1
-  )
+  dummy_env = PettingZooEnv(task_id)
   obs_spec: Any = dummy_env.observation_spec()
   action_spec: Any = dummy_env.action_spec()
   use_resnet = FLAGS.use_resnet
   use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
-  logging.info(f"Observation shape: {obs_spec.obs.shape}")
-  logging.info(f"Action space: {action_spec.num_values}")
+  logging.info(f"Observation spec: {obs_spec}")
+  logging.info(f"Action spec: {action_spec}")
 
-  def env_maker() -> EnvpoolVectorEnv:
+  def env_maker() -> Any:
     """Env maker."""
-    return EnvpoolVectorEnv(
-      task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
-    )
+    return DummyVectorEnv(num_envs, PettingZooEnv, task_id=task_id)
 
   def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_wrapper(timestep: Any, logger: Logger) -> AtariAgent:
+    def agent_wrapper(timestep: Any, logger: Logger) -> PettingZooAgent:
       """Return a agent."""
       del timestep
-      return AtariAgent(unroll_len, buffer, predictor, logger)
+      return PettingZooAgent(unroll_len, buffer, predictor, logger)
 
     return agent_wrapper
 
@@ -99,7 +90,7 @@ def make_lp_program() -> Any:
     project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
   )
 
-  program = lp.Program("ppo")
+  program = lp.Program("impala")
   with program.group("buffer"):
     buffer_node = lp.CourierNode(
       QueueBuffer,
@@ -136,7 +127,7 @@ def make_lp_program() -> Any:
   with program.group("learner"):
     save_path = os.path.join("checkpoints", task_id, exp_uid)
     learner_node = lp.CourierNode(
-      PPOLearner,
+      ImpalaLearner,
       buffer,
       predictors,
       partial(
@@ -151,8 +142,8 @@ def make_lp_program() -> Any:
       learning_rate=FLAGS.learning_rate,
       discount=FLAGS.gamma,
       gae_lambda=FLAGS.gae_lambda,
-      pg_clip_epsilon=FLAGS.pg_clip_epsilon,
-      value_clip_epsilon=FLAGS.value_clip_epsilon,
+      clip_rho_threshold=FLAGS.rho_clip,
+      clip_pg_rho_threshold=FLAGS.pg_rho_clip,
       critic_coef=FLAGS.critic_coef,
       entropy_coef=FLAGS.entropy_coef,
     )

@@ -1,20 +1,19 @@
 """Atati impala example."""
 import os
 from functools import partial
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 import envpool
-import jax
 import launchpad as lp
 from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
 
+from examples.atari.agent import AtariAgent
 from examples.atari.network import network_maker
 from moss.actor import GenericActor
-from moss.agent.atari import AtariAgent
 from moss.buffer import QueueBuffer
-from moss.env import EnvpoolVectorEnv, TimeStep
+from moss.env import EnvpoolVectorEnv
 from moss.learner import ImpalaLearner
 from moss.predictor import BasePredictor
 from moss.types import Environment
@@ -82,39 +81,16 @@ def make_lp_program() -> Any:
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
-
-    def env_wrapper() -> Any:
-      """Env wrapper."""
-      return envpool.make_dm(
-        task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
-      )
-
-    def process_fn(env_id: int, timesteps: Any) -> Any:
-      """Timesteps process function."""
-
-      def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
-        """Split batch timestep by env id."""
-        size = batch.step_type.size
-        timesteps = [
-          jax.tree_util.tree_map(lambda x: x[i], batch)  # noqa: B023
-          for i in range(size)
-        ]
-        return timesteps
-
-      timesteps = split_batch_timestep(timesteps)
-      new_timesteps = []
-      for i, timestep in enumerate(timesteps):
-        new_timesteps.append(TimeStep(env_id, i, None, *timestep))
-      return new_timesteps
-
-    return EnvpoolVectorEnv(env_wrapper, process_fn)
+    return EnvpoolVectorEnv(
+      task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
+    )
 
   def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_wrapper(player_info: Any, logger: Logger) -> AtariAgent:
+    def agent_wrapper(timestep: Any, logger: Logger) -> AtariAgent:
       """Return a agent."""
-      del player_info
+      del timestep
       return AtariAgent(unroll_len, buffer, predictor, logger)
 
     return agent_wrapper
