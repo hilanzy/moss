@@ -44,11 +44,11 @@ def main(_):
       total_reward = 0
       agent.reset()
 
-    state, reward = agent.step(timestep)
+    input_dict, reward = agent.step(timestep)
     total_reward += reward
     sub_key, rng = jax.random.split(rng)
-    state = tree.map_structure(lambda x: np.expand_dims(x, 0), state)
-    action, _ = predictor._forward(params, state, None, sub_key)
+    input_dict = tree.map_structure(lambda x: np.expand_dims(x, 0), input_dict)
+    action, _ = predictor._forward(params, input_dict, None, sub_key)
     take_action = agent.take_action(action)
     take_action = np.array(take_action)
     timestep = local_env.step(take_action)
