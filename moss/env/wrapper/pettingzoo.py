@@ -47,7 +47,7 @@ class AutoResetWrapper(BaseParallelWrapper):
         assert (
           "first_step" not in info[agent_id]
         ), "info dict cannot contain key 'first_step'."
-        info[agent_id]["first_step"] = True
+        info[agent_id]["first_step"] = False
 
     return obs, reward, terminated, truncated, info
 
