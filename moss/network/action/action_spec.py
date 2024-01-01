@@ -26,7 +26,7 @@ class ActionSpec(object):
     return self._actions
 
   @property
-  def action_spec(self) -> Dict[str, SpecArray]:
+  def spec(self) -> Dict[str, SpecArray]:
     """Action specs."""
     return self._spec
 

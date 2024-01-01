@@ -7,7 +7,7 @@ import jax
 import numpy as np
 
 from moss.network.action.base import Action
-from moss.types import Array, KeyArray, SpecArray
+from moss.types import Array, DiscreteArray, KeyArray
 
 
 class DiscreteAction(Action):
@@ -34,7 +34,7 @@ class DiscreteAction(Action):
     self._name = name
     self._hidden_sizes = hidden_sizes
     self._num_actions = num_actions
-    self._spec = SpecArray((num_actions,), dtype=np.int8, name=name)
+    self._spec = DiscreteArray(num_actions, dtype=np.int8, name=name)
     self._use_orthogonal = use_orthogonal
 
   def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
@@ -54,9 +54,8 @@ class DiscreteAction(Action):
       policy_logits -= mask * 1e9
     return policy_logits
 
-  @classmethod
   def distribution(
-    cls,
+    self,
     logits: Array,
     temperature: float = 1.,
     dtype: Type = int
@@ -64,16 +63,15 @@ class DiscreteAction(Action):
     """Action distribution."""
     return distrax.Softmax(logits, temperature, dtype)
 
-  @classmethod
   def sample(
-    cls,
+    self,
     rng: KeyArray,
     logits: Array,
     temperature: float = 1.,
     dtype: Type = int
   ) -> Array:
     """Sample discrete action."""
-    distribution = cls.distribution(logits, temperature, dtype)
+    distribution = self.distribution(logits, temperature, dtype)
     return distribution.sample(seed=rng)
 
   @property
@@ -87,6 +85,6 @@ class DiscreteAction(Action):
     return self._num_actions
 
   @property
-  def spec(self) -> SpecArray:
+  def spec(self) -> DiscreteArray:
     """Get action spec."""
     return self._spec
