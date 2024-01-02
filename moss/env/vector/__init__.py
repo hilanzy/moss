@@ -1,14 +1,24 @@
 """Vector environment."""
 from moss.env.vector.base import (
-  BaseEnvWorker,
   DummyVectorEnv,
   EnvpoolVectorEnv,
   RayVectorEnv,
+  SubprocessVectorEnv,
+)
+from moss.env.vector.worker import (
+  BaseEnvWorker,
+  DummyEnvWorker,
+  RayEnvWorker,
+  SubprocessEnvWorker,
 )
 
 __all__ = [
-  "BaseEnvWorker",
   "DummyVectorEnv",
   "EnvpoolVectorEnv",
   "RayVectorEnv",
+  "SubprocessVectorEnv",
+  "BaseEnvWorker",
+  "DummyEnvWorker",
+  "RayEnvWorker",
+  "SubprocessEnvWorker",
 ]

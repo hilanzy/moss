@@ -1,10 +1,19 @@
-"""Vectorized environments."""
+"""Vectorized environments.
+
+Design ideas of vectorized environments refer to the implementation of tianshou.
+More about it to see: https://github.com/thu-ml/tianshou
+"""
 from functools import partial
 from typing import Any, Callable, Dict
 
 from moss.env.base import BaseEnv
 from moss.env.envpool import EnvpoolEnv
-from moss.env.vector.worker import BaseEnvWorker, DummyWorker, RayEnvWorker
+from moss.env.vector.worker import (
+  BaseEnvWorker,
+  DummyEnvWorker,
+  RayEnvWorker,
+  SubprocessEnvWorker,
+)
 from moss.types import TimeStep
 
 EnvID = Any
@@ -114,6 +123,11 @@ class BaseVectorEnv(object):
     """
     pass
 
+  def close(self) -> None:
+    """Close all envs and release resources."""
+    for worker in self._workers:
+      worker.close()
+
   @property
   def num_envs(self) -> int:
     """Num of vectorized environments."""
@@ -127,7 +141,7 @@ class DummyVectorEnv(BaseVectorEnv):
     self, num_envs: int, env_maker: Callable[[], BaseEnv], **kwargs: Any
   ) -> None:
     """Dummy vectorized environments wrapper."""
-    super().__init__(num_envs, env_maker, DummyWorker, **kwargs)
+    super().__init__(num_envs, env_maker, DummyEnvWorker, **kwargs)
 
 
 class EnvpoolVectorEnv(BaseVectorEnv):
@@ -136,7 +150,7 @@ class EnvpoolVectorEnv(BaseVectorEnv):
   def __init__(self, task_id: str, **kwargs: Any) -> None:
     """Envpool vectorized environments warrper."""
     env_maker = partial(EnvpoolEnv, task_id, **kwargs)
-    super().__init__(1, env_maker, DummyWorker)
+    super().__init__(1, env_maker, DummyEnvWorker)
 
   @property
   def num_envs(self) -> int:
@@ -152,3 +166,13 @@ class RayVectorEnv(BaseVectorEnv):
   ) -> None:
     """Ray vectorized environments wrapper."""
     super().__init__(num_envs, env_maker, RayEnvWorker, **kwargs)
+
+
+class SubprocessVectorEnv(BaseVectorEnv):
+  """Subprocess vectorized environment wrapper, implemented in subprocess."""
+
+  def __init__(
+    self, num_envs: int, env_maker: Callable[[], BaseEnv], **kwargs: Any
+  ) -> None:
+    """Subprocess vectorized environment wrapper."""
+    super().__init__(num_envs, env_maker, SubprocessEnvWorker, **kwargs)
