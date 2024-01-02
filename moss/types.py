@@ -6,8 +6,10 @@ import haiku as hk
 import jax
 import numpy as np
 import optax
+from chex import Numeric  # noqa: F401
 from dm_env import Environment, StepType, TimeStep  # noqa: F401
 from dm_env.specs import Array as SpecArray  # noqa: F401
+from dm_env.specs import BoundedArray, DiscreteArray  # noqa: F401
 from jax.random import KeyArray  # noqa: F401
 
 Array = Union[np.ndarray, jax.Array]

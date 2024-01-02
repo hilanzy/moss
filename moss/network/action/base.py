@@ -24,12 +24,10 @@ class Action(abc.ABC):
   def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
     """Action policy network."""
 
-  @classmethod
   @abc.abstractmethod
   def distribution(cls, *args: Any, **kwargs: Any) -> DistributionLike:
     """Action distribution."""
 
-  @classmethod
   @abc.abstractmethod
   def sample(cls, *args: Any, **kwargs: Any) -> Any:
     """Sample action."""
