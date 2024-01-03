@@ -47,3 +47,7 @@ class BaseEnv(Environment):
       An `Array` spec, or a nested dict, list or tuple of `Array` specs.
     """
     pass
+
+  def close(self) -> None:
+    """Close env and release resources."""
+    pass

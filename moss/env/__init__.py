@@ -1,23 +1,23 @@
 """Custom environments."""
 from moss.env.base import BaseEnv
 from moss.env.envpool import EnvpoolEnv
+from moss.env.pettingzoo import PettingZooEnv
 from moss.env.vector.base import (
   BaseVectorEnv,
   DummyVectorEnv,
   EnvpoolVectorEnv,
   RayVectorEnv,
+  SubprocessVectorEnv,
 )
-from moss.env.vector.worker import BaseEnvWorker, DummyWorker, RayEnvWorker
 
 __all__ = [
   "BaseEnv",
+  "EnvpoolEnv",
+  "PettingZooEnv",
   "BaseVectorEnv",
   "DummyVectorEnv",
-  "RayVectorEnv",
-  "EnvpoolEnv",
   "EnvpoolVectorEnv",
-  "BaseEnvWorker",
-  "DummyWorker",
-  "RayEnvWorker",
+  "RayVectorEnv",
+  "SubprocessVectorEnv",
 ]
 # Internal imports.
