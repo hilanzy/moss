@@ -5,6 +5,7 @@ from typing import Any, List, Optional
 import haiku as hk
 import jax
 
+from moss.network.base import Module
 from moss.network.layers import ResidualBlock
 from moss.types import Array
 
@@ -16,7 +17,7 @@ Conv2DConfig = collections.namedtuple(
 )
 
 
-class ImageFeatureEncoder(hk.Module):
+class ImageFeatureEncoder(Module):
   """Image featrue encoder."""
 
   def __init__(

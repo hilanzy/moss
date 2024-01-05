@@ -4,10 +4,11 @@ from typing import Any, List
 import haiku as hk
 import jax
 
+from moss.network.base import Module
 from moss.types import Array
 
 
-class CommonEncoder(hk.Module):
+class CommonEncoder(Module):
   """Common encoder."""
 
   def __init__(

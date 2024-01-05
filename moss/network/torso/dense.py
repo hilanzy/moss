@@ -5,10 +5,11 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 
+from moss.network.base import Module
 from moss.types import Array
 
 
-class DenseTorso(hk.Module):
+class DenseTorso(Module):
   """Dense torso network."""
 
   def __init__(

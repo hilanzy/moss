@@ -1,5 +1,5 @@
 """Centealized training and decentralized execution(CTDE) network."""
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import haiku as hk
 import jax.numpy as jnp
@@ -7,6 +7,7 @@ import tree
 
 from moss.network import Network
 from moss.network.action import ActionSpec
+from moss.network.base import Module, RNNModule
 from moss.network.feature import FeatureSpec
 from moss.network.keys import AGENT_STATE, GLOBAL_STATE, MASK
 from moss.types import Array, KeyArray, NetOutput, Params, RNNState
@@ -20,23 +21,23 @@ class CTDEModule(hk.Module):
     feature_spec: FeatureSpec,
     global_feature_spec: FeatureSpec,
     action_spec: ActionSpec,
-    torso_net_maker: Callable[[], Any],
-    value_net_maker: Callable[[], Any],
+    torso_net: Module,
+    value_net: Module,
   ) -> None:
     """Init."""
     super().__init__("CTDE_module")
     self._feature_spec = feature_spec
     self._feature_encoder = {
-      name: (feature_set.process, feature_set.encoder_net_maker())
+      name: (feature_set.process, feature_set.encoder_net)
       for name, feature_set in feature_spec.feature_sets.items()
     }
     self._golbal_feature_encoder = {
-      name: (feature_set.process, feature_set.encoder_net_maker())
+      name: (feature_set.process, feature_set.encoder_net)
       for name, feature_set in global_feature_spec.feature_sets.items()
     }
     self._action_spec = action_spec
-    self._torso_net = torso_net_maker()
-    self._value_net = value_net_maker()
+    self._torso_net = torso_net
+    self._value_net = value_net
 
   def __call__(
     self, input_dict: Dict, rnn_state: RNNState, training: bool
@@ -57,7 +58,7 @@ class CTDEModule(hk.Module):
       agent_embeddings[name] = embedding
 
     if training:
-      if isinstance(self._torso_net, hk.RNNCore):
+      if isinstance(self._torso_net, RNNModule):
         torso_out, rnn_state = hk.dynamic_unroll(
           self._torso_net, agent_embeddings, rnn_state
         )
@@ -102,9 +103,9 @@ class CTDEModule(hk.Module):
 
   def initial_state(self, batch_size: Optional[int]) -> RNNState:
     """Constructs an initial state for rnn core."""
-    try:
+    if isinstance(self._torso_net, RNNModule):
       rnn_state = self._torso_net.initial_state(batch_size)
-    except Exception:
+    else:
       rnn_state = None
     return rnn_state
 
@@ -117,8 +118,8 @@ class CTDENet(Network):
     feature_spec: FeatureSpec,
     global_feature_spec: FeatureSpec,
     action_spec: ActionSpec,
-    torso_net_maker: Callable[[], Any],
-    value_net_maker: Callable[[], Any],
+    torso_net: Module,
+    value_net: Module,
   ) -> None:
     """Init."""
     self._feature_spec = feature_spec
@@ -127,16 +128,14 @@ class CTDENet(Network):
     self._net = hk.without_apply_rng(
       hk.transform(
         lambda *args, **kwargs: CTDEModule(
-          feature_spec, global_feature_spec, action_spec, torso_net_maker,
-          value_net_maker
+          feature_spec, global_feature_spec, action_spec, torso_net, value_net
         )(*args, **kwargs)
       )
     )
     self._initial_state = hk.without_apply_rng(
       hk.transform(
         lambda x: CTDEModule(
-          feature_spec, global_feature_spec, action_spec, torso_net_maker,
-          value_net_maker
+          feature_spec, global_feature_spec, action_spec, torso_net, value_net
         ).initial_state(x)
       )
     )
