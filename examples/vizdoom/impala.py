@@ -1,9 +1,9 @@
 """Atati impala example."""
-import collections
 import os
 from functools import partial
 from typing import Any, Callable
 
+import envpool
 import launchpad as lp
 from absl import app, flags, logging
 from launchpad.nodes.dereference import Deferred
@@ -11,7 +11,7 @@ from launchpad.nodes.python.local_multi_processing import PythonProcess
 
 from examples.vizdoom.agent import DoomAgent
 from examples.vizdoom.network import network_maker
-from examples.vizdoom.utils import vizdoom_env_maker
+from examples.vizdoom.utils import action_spec_wrapper
 from moss.actor import GenericActor
 from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv
@@ -20,7 +20,7 @@ from moss.predictor import BasePredictor
 from moss.utils.loggers import Logger, experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
-flags.DEFINE_string("map_id", "D1_basic", "Map id.")
+flags.DEFINE_string("task_id", "D1Basic-v1", "Task id.")
 flags.DEFINE_string(
   "cfg_path", "examples/vizdoom/maps/D1_basic.cfg", "Task config path."
 )
@@ -67,7 +67,7 @@ FLAGS = flags.FLAGS
 def make_lp_program() -> Any:
   """Make launchpad program."""
   (exp_uid,) = get_unique_id()
-  map_id = FLAGS.map_id
+  task_id = FLAGS.task_id
   cfg_path = FLAGS.cfg_path
   wad_path = FLAGS.wad_path
   stack_num = FLAGS.stack_num
@@ -75,38 +75,47 @@ def make_lp_program() -> Any:
   num_threads = FLAGS.num_threads
   unroll_len = FLAGS.unroll_len
 
-  dummy_env = vizdoom_env_maker(
-    map_id, 1, cfg_path, wad_path, stack_num=stack_num
+  reward_config = {
+    "KILLCOUNT": [20.0, -20.0],
+    "HEALTH": [1.0, 0.0],
+    "AMMO2": [1.0, -1.0],
+  }
+  if "battle" in task_id:
+    reward_config["HEALTH"] = [1.0, -1.0]
+  dummy_env = envpool.make_dm(
+    task_id,
+    num_envs=1,
+    stack_num=1,
+    cfg_path=cfg_path,
+    wad_path=wad_path,
+    reward_config=reward_config,
+    use_combined_action=True,
+    max_episode_steps=2625,
+    use_inter_area_resize=False,
   )
-
-  def action_spec_wrapper(env) -> Any:
-    """Action spec wrapper.
-
-    This function is to wrapper action space to dm action spec, to avoid
-      `action_spec()` bug(maybe).
-      See: https://github.com/sail-sg/envpool/issues/264
-    """
-    ActionSpec = collections.namedtuple("ActionSpec", ["num_values"])
-    return ActionSpec(env.spec.action_space.n)
 
   obs_spec = dummy_env.observation_spec()
   action_spec = action_spec_wrapper(dummy_env)
   use_resnet = FLAGS.use_resnet
   use_orthogonal = FLAGS.use_orthogonal
 
-  logging.info(f"Map id: {map_id}")
+  logging.info(f"Map id: {task_id}")
   logging.info(f"Observation shape: {obs_spec.obs.shape}")
   logging.info(f"Action space: {action_spec.num_values}")
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
     return EnvpoolVectorEnv(
-      map_id,
+      task_id,
       num_envs=num_envs,
+      stack_num=stack_num,
       cfg_path=cfg_path,
       wad_path=wad_path,
-      stack_num=stack_num,
-      num_threads=num_threads
+      num_threads=num_threads,
+      reward_config=reward_config,
+      use_combined_action=True,
+      max_episode_steps=2625,
+      use_inter_area_resize=False,
     )
 
   def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
@@ -120,7 +129,7 @@ def make_lp_program() -> Any:
     return agent_wrapper
 
   logger_fn = experiment_logger_factory(
-    project=map_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
+    project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
   )
 
   program = lp.Program("impala")
@@ -158,7 +167,7 @@ def make_lp_program() -> Any:
       program.add_node(actor_node)
 
   with program.group("learner"):
-    save_path = os.path.join("checkpoints", map_id, exp_uid)
+    save_path = os.path.join("checkpoints", task_id, exp_uid)
     learner_node = lp.CourierNode(
       ImpalaLearner,
       buffer,
