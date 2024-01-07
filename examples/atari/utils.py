@@ -43,7 +43,8 @@ class LocalEnv(Environment):
     seed: int = 42,
     render: bool = True,
     fps: int = 60,
-    scale: int = 1
+    scale: int = 1,
+    **kwargs: Any
   ) -> None:
     """Initializes the local Atari environment with optional rendering.
 
@@ -53,10 +54,11 @@ class LocalEnv(Environment):
       render (bool): Whether to render the game frames.
       fps (int): Frames per second for game rendering.
       scale (int): Scaling factor for rendering the game frames.
+      kwargs (Any): Any arguments for env.
     """
     self._task_id = task_id
     self._env: Environment = envpool.make_dm(
-      task_id, seed=seed, stack_num=1, num_envs=1
+      task_id, seed=seed, stack_num=1, num_envs=1, **kwargs
     )
     self._render_mode = render
     if render:
@@ -69,6 +71,7 @@ class LocalEnv(Environment):
         img_height=210,
         img_width=160,
         gray_scale=False,
+        **kwargs
       )
       self._fps = fps
       self._scale = scale
