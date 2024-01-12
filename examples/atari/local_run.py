@@ -18,6 +18,9 @@ from moss.utils.loggers import TerminalLogger
 
 flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
 flags.DEFINE_string("model_path", None, "Restore model path.")
+flags.DEFINE_bool(
+  "use_resnet", False, "Use resnet or conv2d encoder for atari image."
+)
 
 FLAGS = flags.FLAGS
 
@@ -28,8 +31,10 @@ def main(_):
   obs_spec = local_env.observation_spec()
   action_spec = local_env.action_spec()
 
+  use_resnet = FLAGS.use_resnet
   predictor = BasePredictor(
-    1, partial(network_maker, obs_spec, action_spec), TerminalLogger
+    1, partial(network_maker, obs_spec, action_spec, use_resnet=use_resnet),
+    TerminalLogger
   )
   with open(FLAGS.model_path, mode="rb") as f:
     params: Params = pickle.load(f)

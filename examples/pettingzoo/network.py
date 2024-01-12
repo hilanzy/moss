@@ -1,5 +1,4 @@
 """PettingZoo network."""
-from functools import partial
 from typing import Any
 
 import numpy as np
@@ -53,7 +52,7 @@ def network_maker(
           lambda x: x / 255.
         )
     },
-    encoder_net_maker=lambda: ImageFeatureEncoder(
+    encoder_net=ImageFeatureEncoder(
       "frame_encoder",
       data_format,
       use_resnet=use_resnet,
@@ -67,7 +66,7 @@ def network_maker(
     features={
       "id": OneHotFeature(2, name="id"),
     },
-    encoder_net_maker=lambda: CommonEncoder(
+    encoder_net=CommonEncoder(
       "player_encoder",
       hidden_sizes=[32],
       use_orthogonal=use_orthogonal,
@@ -83,11 +82,9 @@ def network_maker(
       DiscreteAction("pettingzoo_action", [512], num_actions, use_orthogonal),
   }
 
-  torso_net_maker = partial(DenseTorso, "torso", [512], use_orthogonal)
-  value_net_maker = partial(DenseValue, "value", [512, 32], use_orthogonal)
   return CommonNet(
     feature_spec=FeatureSpec(feature_sets),
     action_spec=ActionSpec(actions),
-    torso_net_maker=torso_net_maker,
-    value_net_maker=value_net_maker,
+    torso_net=DenseTorso("torso", [512], use_orthogonal),
+    value_net=DenseValue("value", [512, 32], use_orthogonal),
   )

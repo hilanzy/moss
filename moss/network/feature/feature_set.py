@@ -1,10 +1,10 @@
 """Feature set."""
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
-import haiku as hk
 import jax.numpy as jnp
 import tree
 
+from moss.network.base import Module
 from moss.network.feature.feature import BaseFeature
 from moss.types import Array
 
@@ -13,13 +13,12 @@ class FeatureSet(object):
   """Feature set."""
 
   def __init__(
-    self, name: str, features: Dict[str, BaseFeature],
-    encoder_net_maker: Callable[[], hk.Module]
+    self, name: str, features: Dict[str, BaseFeature], encoder_net: Module
   ) -> None:
     """Init."""
     self._name = name
     self._features = features
-    self._encoder_net_maker = encoder_net_maker
+    self._encoder_net = encoder_net
 
   @property
   def name(self) -> str:
@@ -32,9 +31,9 @@ class FeatureSet(object):
     return self._features
 
   @property
-  def encoder_net_maker(self) -> Callable[[], Any]:
+  def encoder_net(self) -> Module:
     """Feature encoder."""
-    return self._encoder_net_maker
+    return self._encoder_net
 
   def generate_value(self) -> Any:
     """Generate a test value which conforms to this feature set."""

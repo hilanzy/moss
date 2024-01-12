@@ -5,8 +5,10 @@ import haiku as hk
 import jax
 import jax.numpy as jnp
 
+from moss.network.base import Module
 
-class DenseValue(hk.Module):
+
+class DenseValue(Module):
   """Dense value network."""
 
   def __init__(

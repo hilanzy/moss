@@ -4,10 +4,11 @@ from typing import Any, Dict, Optional, Tuple
 import haiku as hk
 import jax.numpy as jnp
 
+from moss.network.base import RNNModule
 from moss.types import Array
 
 
-class LSTMTorso(hk.RNNCore):
+class LSTMTorso(RNNModule):
   """LSTM torso network."""
 
   def __init__(self, name: str, hidden_size: int):
