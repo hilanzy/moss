@@ -13,53 +13,41 @@
 # limitations under the License.
 # ==============================================================================
 """Residual block."""
-from typing import Any, Optional
+from typing import Optional
 
-import haiku as hk
+import flax.linen as nn
 import jax
 
 from moss.types import Array
 
 
-class ResidualBlock(hk.Module):
-  """Residual block."""
+class ResidualBlock(nn.Module):
+  """Flax residual block module."""
+  num_channels: int
+  name: Optional[str] = None
+  use_orthogonal: bool = True
 
-  def __init__(
-    self,
-    num_channels: int,
-    name: Optional[str] = None,
-    data_format: str = "NHWC",
-    use_orthogonal: bool = True
-  ) -> None:
-    """Init."""
-    super().__init__(name=name)
-    self._num_channels = num_channels
-    self._data_format = data_format
-    self._use_orthogonal = use_orthogonal
-
-  def __call__(self, inputs: Array) -> Any:
+  @nn.compact
+  def __call__(self, inputs: Array) -> Array:
     """Call."""
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
-    main_branch = hk.Sequential(
+    kernel_init = nn.initializers.orthogonal() if self.use_orthogonal else None
+    main_branch = nn.Sequential(
       [
         jax.nn.relu,
-        hk.Conv2D(
-          self._num_channels,
-          kernel_shape=[3, 3],
-          stride=[1, 1],
-          w_init=w_init,
+        nn.Conv(
+          self.num_channels,
+          kernel_size=[3, 3],
+          strides=[1, 1],
           padding="SAME",
-          data_format=self._data_format
-        ),
-        jax.nn.relu,
-        hk.Conv2D(
-          self._num_channels,
-          kernel_shape=[3, 3],
-          stride=[1, 1],
-          w_init=w_init,
+          kernel_init=kernel_init,
+        ), jax.nn.relu,
+        nn.Conv(
+          self.num_channels,
+          kernel_size=[3, 3],
+          strides=[1, 1],
           padding="SAME",
-          data_format=self._data_format
-        ),
+          kernel_init=kernel_init,
+        )
       ]
     )
     return main_branch(inputs) + inputs

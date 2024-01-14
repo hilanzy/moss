@@ -2,7 +2,7 @@
 from typing import Any, Callable, List, Optional
 
 import distrax
-import haiku as hk
+import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -22,7 +22,7 @@ class ContinuousAction(Action):
     maximum: Numeric = 1,
     use_orthogonal: bool = True
   ) -> None:
-    """Init.
+    """Continuous action init.
 
     Args:
       name: Action name.
@@ -41,11 +41,11 @@ class ContinuousAction(Action):
     self._spec = BoundedArray((), np.float32, minimum, maximum, name)
     self._use_orthogonal = use_orthogonal
 
-  def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
-    """Action policy network."""
+  def decoder(self, inputs: Array, mask: Optional[Array] = None) -> Array:
+    """Continuous action decoder."""
     del mask  # NOTE: Continuous action don't support mask.
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
-    action_w_init = hk.initializers.Orthogonal(
+    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
+    action_kernel_init = nn.initializers.orthogonal(
       scale=0.01
     ) if self._use_orthogonal else None
 
@@ -53,11 +53,11 @@ class ContinuousAction(Action):
       """Setup a sequential model form hidden_sizes."""
       layers: List[Any] = []
       for hidden_size in self._hidden_sizes:
-        layers.append(hk.Linear(hidden_size, w_init=w_init))
+        layers.append(nn.Dense(hidden_size, kernel_init=kernel_init))
         layers.append(jax.nn.relu)
-      layers.append(hk.Linear(1, w_init=action_w_init))
+      layers.append(nn.Dense(1, kernel_init=action_kernel_init))
       layers.append(jax.nn.tanh)
-      return hk.Sequential(layers)
+      return nn.Sequential(layers)
 
     mu_net = mlp()
     sigma_net = mlp()
@@ -80,11 +80,21 @@ class ContinuousAction(Action):
     return distribution.sample(seed=rng)
 
   @property
-  def name(self) -> Optional[str]:
+  def spec(self) -> BoundedArray:
+    """Get action spec."""
+    return self._spec
+
+  @property
+  def name(self) -> str:
     """Get action name."""
     return self._name
 
   @property
-  def spec(self) -> BoundedArray:
-    """Get action spec."""
-    return self._spec
+  def minimum(self) -> Numeric:
+    """Minimum action value."""
+    return self._minimum
+
+  @property
+  def maximum(self) -> Numeric:
+    """Maximun action value."""
+    return self._maximum

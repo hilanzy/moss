@@ -1,33 +1,40 @@
 """Value decoder network."""
-from typing import Any, List
+from typing import Any, List, Optional
 
-import haiku as hk
+import flax.linen as nn
 import jax
 import jax.numpy as jnp
 
-from moss.network.base import Module
+from moss.types import Array
 
 
-class DenseValue(Module):
-  """Dense value network."""
+class DenseValue(object):
+  """Dense value decoder."""
 
   def __init__(
-    self, name: str, hidden_sizes: List[int], use_orthogonal: bool = True
-  ):
-    """Init."""
-    super().__init__(name)
+    self,
+    hidden_sizes: List[int],
+    name: Optional[str] = None,
+    use_orthogonal: bool = True,
+  ) -> None:
+    """Dense value init."""
+    self._name = name or "dense_value"
     self._hidden_sizes = hidden_sizes
     self._use_orthogonal = use_orthogonal
 
-  def __call__(self, inputs: Any) -> Any:
-    """Call."""
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
-    mlp_layers: List[Any] = []
+  def decoder(self, inputs: Array) -> Array:
+    """Value decoder."""
+    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
+    layers: List[Any] = []
     for hidden_size in self._hidden_sizes:
-      mlp_layers.append(hk.Linear(hidden_size, w_init=w_init))
-      mlp_layers.append(jax.nn.relu)
-    mlp_layers.append(hk.Linear(1, w_init=w_init))
-    value_net = hk.Sequential(mlp_layers)
+      layers.append(nn.Dense(hidden_size, kernel_init=kernel_init))
+      layers.append(jax.nn.relu)
+    layers.append(nn.Dense(1, kernel_init=kernel_init))
+    value_net = nn.Sequential(layers)
     value = value_net(inputs)
     value = jnp.squeeze(value, axis=-1)
     return value
+
+  def name(self) -> str:
+    """Get value name."""
+    return self._name

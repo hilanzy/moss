@@ -1,6 +1,6 @@
 """Core interface."""
 import abc
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
@@ -107,7 +107,3 @@ class Predictor(Worker):
   @abc.abstractmethod
   def result(self, idx: int) -> Any:
     """Get result async."""
-
-  @abc.abstractmethod
-  def initial_state(self, batch_size: Optional[int]) -> RNNState:
-    """Get initial rnn state."""
