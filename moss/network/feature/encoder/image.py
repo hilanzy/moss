@@ -61,7 +61,10 @@ class ImageEncoder(FeatureEncoder):
   def __call__(self, inputs: Array) -> Array:
     """Call."""
     assert self._data_format == "NHWC", ("Only support `NHWC` data format.")
-    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
+
     if self._use_resnet:
       if self._resnet_config is None:
         raise ValueError(
@@ -74,7 +77,7 @@ class ImageEncoder(FeatureEncoder):
           kernel_size=[3, 3],
           strides=[1, 1],
           padding="SAME",
-          kernel_init=kernel_init,
+          **init_kwargs,
         )
         encoder_out = conv(encoder_out)
         encoder_out = nn.max_pool(
@@ -104,7 +107,7 @@ class ImageEncoder(FeatureEncoder):
             kernel_size=kernel,
             strides=strides,
             padding=padding,
-            kernel_init=kernel_init,
+            **init_kwargs,
           )
         )
         layers.append(jax.nn.relu)

@@ -37,11 +37,13 @@ class LSTMTorso(RNNTorso):
       torso_out: torso aggregator output.
       new_state: new lstm rnn state.
     """
-    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
+      init_kwargs["recurrent_kernel_init"] = nn.initializers.orthogonal()
     lstm_cell = nn.OptimizedLSTMCell(
       self._hidden_size,
-      kernel_init=kernel_init,
-      recurrent_kernel_init=kernel_init
+      **init_kwargs,
     )
     if training:
       new_state, torso_out = nn.RNN(

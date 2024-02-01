@@ -25,9 +25,11 @@ class CommonEncoder(FeatureEncoder):
   def __call__(self, inputs: Array) -> Any:
     """Call."""
     layers: List[Any] = []
-    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
     for hidden_size in self._hidden_sizes:
-      layers.append(nn.Dense(hidden_size, kernel_init=kernel_init))
+      layers.append(nn.Dense(hidden_size, **init_kwargs))
       layers.append(jax.nn.relu)
     common_net = nn.Sequential(layers)
     encoder_out = common_net(inputs)
