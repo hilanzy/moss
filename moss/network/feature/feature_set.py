@@ -1,10 +1,10 @@
 """Feature set."""
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
-import flax.linen as nn
 import jax.numpy as jnp
 import tree
 
+from moss.network.feature.encoder.base import FeatureEncoder
 from moss.network.feature.feature import BaseFeature
 from moss.types import Array
 
@@ -13,13 +13,15 @@ class FeatureSet(object):
   """Feature set."""
 
   def __init__(
-    self, name: str, features: Dict[str, BaseFeature],
-    encoder_class: Callable[..., nn.Module], params: Dict[str, Any]
+    self,
+    name: str,
+    features: Dict[str, BaseFeature],
+    encoder: FeatureEncoder,
   ) -> None:
     """Init."""
     self._name = name
     self._features = features
-    self._encoder_maker = lambda: encoder_class(**params)
+    self._encoder = encoder
 
   @property
   def name(self) -> str:
@@ -33,9 +35,7 @@ class FeatureSet(object):
 
   def encoder(self, inputs: Array) -> Array:
     """Feature encoder."""
-    encoder_net = self._encoder_maker()
-    encoder_out = encoder_net(inputs)
-    return encoder_out
+    return self._encoder(inputs)
 
   def generate_value(self) -> Any:
     """Generate a test value which conforms to this feature set."""

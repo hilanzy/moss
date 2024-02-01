@@ -6,11 +6,7 @@ import numpy as np
 from moss.network import CommonNet
 from moss.network.action import ActionSpec, DiscreteAction
 from moss.network.feature import FeatureSet, FeatureSpec, ImageFeature
-from moss.network.feature.encoder import (
-  Conv2DConfig,
-  ImageFeatureEncoder,
-  ResnetConfig,
-)
+from moss.network.feature.encoder import Conv2DConfig, ImageEncoder, ResnetConfig
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
@@ -45,15 +41,14 @@ def network_maker(
           lambda x: x / 255.
         )
     },
-    encoder_class=ImageFeatureEncoder,
-    params={
-      "name": "frame_encoder",
-      "data_format": data_format,
-      "use_resnet": use_resnet,
-      "resnet_config": resnet_default_config,
-      "conv2d_config": conv2d_default_config,
-      "use_orthogonal": use_orthogonal,
-    }
+    encoder=ImageEncoder(
+      name="frame_encoder",
+      data_format=data_format,
+      use_resnet=use_resnet,
+      resnet_config=resnet_default_config,
+      conv2d_config=conv2d_default_config,
+      use_orthogonal=use_orthogonal
+    )
   )
   feature_sets = {
     "atari_frame": atari_frame,

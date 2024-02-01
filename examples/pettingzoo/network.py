@@ -14,7 +14,7 @@ from moss.network.feature import (
 from moss.network.feature.encoder import (
   CommonEncoder,
   Conv2DConfig,
-  ImageFeatureEncoder,
+  ImageEncoder,
   ResnetConfig,
 )
 from moss.network.torso import DenseTorso
@@ -52,9 +52,9 @@ def network_maker(
           lambda x: x / 255.
         )
     },
-    encoder_net=ImageFeatureEncoder(
-      "frame_encoder",
-      data_format,
+    encoder=ImageEncoder(
+      name="frame_encoder",
+      data_format=data_format,
       use_resnet=use_resnet,
       resnet_config=resnet_default_config,
       conv2d_config=conv2d_default_config,
