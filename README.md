@@ -68,5 +68,5 @@ For more details, please see the JAX installation instructions [here](https://gi
 
 This is an example of Impala to train Atari game(use [envpool](https://github.com/sail-sg/envpool)).
   ```bash
-  python examples/atari/impala.py --task_id Pong-v5 --learning_rate 1e-3
+  python impala.py --task_id Pong-v5 --learning_rate 1e-3
   ```

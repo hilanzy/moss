@@ -1,2 +1,2 @@
 #!/bin/bash
-python examples/atari/impala.py $@
+cd examples/atari && python impala.py $@

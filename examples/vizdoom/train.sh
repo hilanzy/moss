@@ -1,2 +1,2 @@
 #!/bin/bash
-python examples/vizdoom/impala.py $@
+cd examples/vizdoom && python impala.py $@

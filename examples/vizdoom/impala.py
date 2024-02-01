@@ -6,12 +6,12 @@ from typing import Any, Callable
 import envpool
 import launchpad as lp
 from absl import app, flags, logging
+from agent import DoomAgent
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
+from network import network_maker
+from utils import action_spec_wrapper
 
-from examples.vizdoom.agent import DoomAgent
-from examples.vizdoom.network import network_maker
-from examples.vizdoom.utils import action_spec_wrapper
 from moss.actor import GenericActor
 from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv

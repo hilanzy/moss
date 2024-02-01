@@ -6,11 +6,11 @@ from typing import Any, Callable
 import envpool
 import launchpad as lp
 from absl import app, flags, logging
+from agent import AtariAgent
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
+from network import network_maker
 
-from examples.atari.agent import AtariAgent
-from examples.atari.network import network_maker
 from moss.actor import GenericActor
 from moss.buffer import QueueBuffer
 from moss.env import EnvpoolVectorEnv
