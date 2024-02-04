@@ -24,12 +24,14 @@ class DenseValue(object):
 
   def decoder(self, inputs: Array) -> Array:
     """Value decoder."""
-    kernel_init = nn.initializers.orthogonal() if self._use_orthogonal else None
     layers: List[Any] = []
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
     for hidden_size in self._hidden_sizes:
-      layers.append(nn.Dense(hidden_size, kernel_init=kernel_init))
+      layers.append(nn.Dense(hidden_size, **init_kwargs))
       layers.append(jax.nn.relu)
-    layers.append(nn.Dense(1, kernel_init=kernel_init))
+    layers.append(nn.Dense(1, **init_kwargs))
     value_net = nn.Sequential(layers)
     value = value_net(inputs)
     value = jnp.squeeze(value, axis=-1)
