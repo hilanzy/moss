@@ -19,7 +19,7 @@ def get_install_requires() -> List[str]:
 
   jax_requirements = [
     "jax==0.4.9",
-    "jaxlib==0.4.9",
+    "jaxlib==0.4.24",
     "dm-haiku==0.0.10",
     "chex",
     "flax",
