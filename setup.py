@@ -12,7 +12,7 @@ def get_version() -> str:
 
 def get_install_requires() -> List[str]:
   launchpad = [
-    "tensorflow==2.8.1",
+    "tensorflow==2.16.1",
     "dm-reverb==0.12.0",
     "dm-launchpad==0.5.2",
   ]
