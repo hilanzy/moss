@@ -11,7 +11,7 @@ from moss.network.feature import FeatureSpec
 from moss.network.keys import AGENT_STATE, MASK
 from moss.network.torso import Torso
 from moss.network.utils import BatchApply
-from moss.network.value import DenseValue
+from moss.network.value import Value
 from moss.types import Array, KeyArray, NetOutput, Params, RNNState
 
 
@@ -20,7 +20,7 @@ class CommonModule(nn.Module):
   feature_spec: FeatureSpec
   action_spec: ActionSpec
   torso: Torso
-  value: DenseValue
+  value: Value
   name = "common_module"
 
   @nn.compact
@@ -75,7 +75,7 @@ class CommonNet(Network):
     feature_spec: FeatureSpec,
     action_spec: ActionSpec,
     torso: Torso,
-    value: DenseValue,
+    value: Value,
   ) -> None:
     """Init."""
     self._feature_spec = feature_spec

@@ -36,7 +36,18 @@ class Agent(abc.ABC):
 
   @abc.abstractmethod
   def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
-    """Take step."""
+    """Trans env timestep into network input dict.
+
+    Args:
+      timestep: Env timestep.
+
+    Returns:
+      input_dict: The input dict for network.
+        input keys:
+          `AGENT_STATE`: the agent state for network.
+          `GLOBAL_STATE`: the global state for network(CTDE).
+          `MASK`: the action mask.
+    """
 
   @abc.abstractmethod
   def inference(self, input_dict: Dict) -> Any:

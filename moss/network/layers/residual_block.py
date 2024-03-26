@@ -30,7 +30,9 @@ class ResidualBlock(nn.Module):
   @nn.compact
   def __call__(self, inputs: Array) -> Array:
     """Call."""
-    kernel_init = nn.initializers.orthogonal() if self.use_orthogonal else None
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
     main_branch = nn.Sequential(
       [
         jax.nn.relu,
@@ -39,14 +41,14 @@ class ResidualBlock(nn.Module):
           kernel_size=[3, 3],
           strides=[1, 1],
           padding="SAME",
-          kernel_init=kernel_init,
+          **init_kwargs,
         ), jax.nn.relu,
         nn.Conv(
           self.num_channels,
           kernel_size=[3, 3],
           strides=[1, 1],
           padding="SAME",
-          kernel_init=kernel_init,
+          **init_kwargs,
         )
       ]
     )

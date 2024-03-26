@@ -5,10 +5,11 @@ import flax.linen as nn
 import jax
 import jax.numpy as jnp
 
+from moss.network.value.base import Value
 from moss.types import Array
 
 
-class DenseValue(object):
+class DenseValue(Value):
   """Dense value decoder."""
 
   def __init__(
@@ -37,6 +38,7 @@ class DenseValue(object):
     value = jnp.squeeze(value, axis=-1)
     return value
 
+  @property
   def name(self) -> str:
     """Get value name."""
     return self._name
