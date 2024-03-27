@@ -47,6 +47,7 @@ class Agent(abc.ABC):
           `AGENT_STATE`: the agent state for network.
           `GLOBAL_STATE`: the global state for network(CTDE).
           `MASK`: the action mask.
+      reward: Calculate step rewards.
     """
 
   @abc.abstractmethod
