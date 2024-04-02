@@ -22,7 +22,7 @@ class CTDEModule(nn.Module):
   action_spec: ActionSpec
   torso: Torso
   value: Value
-  name: str = "ctde_module"
+  name = "ctde_module"
 
   @nn.compact
   def __call__(
