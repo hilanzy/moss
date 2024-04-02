@@ -1,14 +1,14 @@
 """Common feature encoder."""
 from typing import Any, List
 
-import haiku as hk
+import flax.linen as nn
 import jax
 
-from moss.network.base import Module
+from moss.network.feature.encoder.base import FeatureEncoder
 from moss.types import Array
 
 
-class CommonEncoder(Module):
+class CommonEncoder(FeatureEncoder):
   """Common encoder."""
 
   def __init__(
@@ -18,17 +18,19 @@ class CommonEncoder(Module):
     use_orthogonal: bool = True
   ) -> None:
     """Init."""
-    super().__init__(name)
+    self._name = name
     self._hidden_sizes = hidden_sizes
     self._use_orthogonal = use_orthogonal
 
   def __call__(self, inputs: Array) -> Any:
     """Call."""
     layers: List[Any] = []
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
     for hidden_size in self._hidden_sizes:
-      layers.append(hk.Linear(hidden_size, w_init=w_init))
+      layers.append(nn.Dense(hidden_size, **init_kwargs))
       layers.append(jax.nn.relu)
-    common_net = hk.Sequential(layers)
+    common_net = nn.Sequential(layers)
     encoder_out = common_net(inputs)
     return encoder_out

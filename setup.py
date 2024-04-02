@@ -18,11 +18,10 @@ def get_install_requires() -> List[str]:
   ]
 
   jax_requirements = [
-    "jax==0.4.9",
-    "jaxlib==0.4.9",
-    "dm-haiku==0.0.10",
+    "jax==0.4.20",
+    "jaxlib==0.4.20",
+    "flax==0.7.5",
     "chex",
-    "flax",
     "optax",
     "rlax",
   ] + launchpad
@@ -35,6 +34,7 @@ def get_install_requires() -> List[str]:
     "numpy",
     "pillow",
     "pygame",
+    "pettingzoo[all]",
     "tensorboardX",
     "tqdm",
     "typing-extensions",

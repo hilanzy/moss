@@ -1,6 +1,6 @@
 """Core interface."""
 import abc
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
@@ -36,7 +36,19 @@ class Agent(abc.ABC):
 
   @abc.abstractmethod
   def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
-    """Take step."""
+    """Trans env timestep into network input dict.
+
+    Args:
+      timestep: Env timestep.
+
+    Returns:
+      input_dict: The input dict for network.
+        input keys:
+          `AGENT_STATE`: the agent state for network.
+          `GLOBAL_STATE`: the global state for network(CTDE).
+          `MASK`: the action mask.
+      reward: Calculate step rewards.
+    """
 
   @abc.abstractmethod
   def inference(self, input_dict: Dict) -> Any:
@@ -107,7 +119,3 @@ class Predictor(Worker):
   @abc.abstractmethod
   def result(self, idx: int) -> Any:
     """Get result async."""
-
-  @abc.abstractmethod
-  def initial_state(self, batch_size: Optional[int]) -> RNNState:
-    """Get initial rnn state."""

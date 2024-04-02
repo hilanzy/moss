@@ -7,7 +7,7 @@
 Training by executing following command:
 
 ```bash
-python examples/atari/impala.py --task_id Pong-v5 --learning_rate 1e-3
+python impala.py --task_id Pong-v5 --learning_rate 1e-3
 ```
 
 **Reward curve**
@@ -19,7 +19,7 @@ python examples/atari/impala.py --task_id Pong-v5 --learning_rate 1e-3
 Training by executing following command:
 
 ```bash
-python examples/atari/impala.py --task_id Breakout-v5 --learning_rate 1e-3
+python impala.py --task_id Breakout-v5 --learning_rate 1e-3
 ```
 
 **Reward curve**
@@ -31,7 +31,7 @@ python examples/atari/impala.py --task_id Breakout-v5 --learning_rate 1e-3
 Training by executing following command:
 
 ```bash
-python examples/atari/impala.py --task_id Seaquest-v5 --entropy_coef 0.5
+python impala.py --task_id Seaquest-v5 --entropy_coef 0.5
 ```
 
 **Reward curve**
@@ -44,7 +44,7 @@ python examples/atari/impala.py --task_id Seaquest-v5 --entropy_coef 0.5
 Training by executing following command:
 
 ```bash
-python examples/atari/impala.py --task_id SpaceInvaders-v5
+python impala.py --task_id SpaceInvaders-v5
 ```
 
 **Reward curve**

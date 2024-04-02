@@ -45,19 +45,21 @@ If you want to run Moss with NVIDIA GPU, please run the steps below:
   ```bash
   pip install --upgrade pip
 
+  pip uninstall jax jaxlib -y
+
   # CUDA 12 installation
   # Note: wheels only available on linux.
-  pip install --upgrade "jax[cuda12_pip]==0.4.9" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+  pip install --upgrade "jax[cuda12_pip]==0.4.20" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
   # CUDA 11 installation
   # Note: wheels only available on linux.
-  pip install --upgrade "jax[cuda11_pip]==0.4.9" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+  pip install --upgrade "jax[cuda11_pip]==0.4.20" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
   ```
 
 Or if you want to run with Google Cloud TPU:
 
   ```bash
-  pip install "jax[tpu]==0.4.9" -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
+  pip install "jax[tpu]==0.4.20" -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
   ```
 
 For more details, please see the JAX installation instructions [here](https://github.com/google/jax/tree/jax-v0.4.9#installation).
@@ -66,5 +68,5 @@ For more details, please see the JAX installation instructions [here](https://gi
 
 This is an example of Impala to train Atari game(use [envpool](https://github.com/sail-sg/envpool)).
   ```bash
-  python examples/atari/impala.py --task_id Pong-v5 --learning_rate 1e-3
+  python impala.py --task_id Pong-v5 --learning_rate 1e-3
   ```

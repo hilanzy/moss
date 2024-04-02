@@ -2,7 +2,7 @@
 from typing import Any, List, Optional, Type
 
 import distrax
-import haiku as hk
+import flax.linen as nn
 import jax
 import numpy as np
 
@@ -37,18 +37,18 @@ class DiscreteAction(Action):
     self._spec = DiscreteArray(num_actions, dtype=np.int8, name=name)
     self._use_orthogonal = use_orthogonal
 
-  def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
+  def decoder(self, inputs: Array, mask: Optional[Array] = None) -> Array:
     """Action policy network."""
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
-    action_w_init = hk.initializers.Orthogonal(
-      scale=0.01
-    ) if self._use_orthogonal else None
+    init_kwargs, action_init_kwargs = {}, {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
+      action_init_kwargs["kernel_init"] = nn.initializers.orthogonal(scale=0.01)
     layers: List[Any] = []
     for hidden_size in self._hidden_sizes:
-      layers.append(hk.Linear(hidden_size, w_init=w_init))
+      layers.append(nn.Dense(hidden_size, **init_kwargs))
       layers.append(jax.nn.relu)
-    layers.append(hk.Linear(self._num_actions, w_init=action_w_init))
-    policy_net = hk.Sequential(layers)
+    layers.append(nn.Dense(self._num_actions, **action_init_kwargs))
+    policy_net = nn.Sequential(layers)
     policy_logits = policy_net(inputs)
     if mask is not None:
       policy_logits -= mask * 1e9
@@ -75,7 +75,12 @@ class DiscreteAction(Action):
     return distribution.sample(seed=rng)
 
   @property
-  def name(self) -> Optional[str]:
+  def spec(self) -> DiscreteArray:
+    """Get action spec."""
+    return self._spec
+
+  @property
+  def name(self) -> str:
     """Get action name."""
     return self._name
 
@@ -83,8 +88,3 @@ class DiscreteAction(Action):
   def num_actions(self) -> int:
     """Get discrete action nums."""
     return self._num_actions
-
-  @property
-  def spec(self) -> DiscreteArray:
-    """Get action spec."""
-    return self._spec

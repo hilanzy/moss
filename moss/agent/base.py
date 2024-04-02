@@ -6,7 +6,14 @@ import jax.numpy as jnp
 from absl import logging
 
 from moss.core import Agent, Buffer, Predictor
-from moss.types import LoggingData, Reward, StepType, TimeStep, Transition
+from moss.types import (
+  LoggingData,
+  Reward,
+  RNNState,
+  StepType,
+  TimeStep,
+  Transition,
+)
 from moss.utils.loggers import Logger
 
 
@@ -26,7 +33,7 @@ class BaseAgent(Agent):
     self._unroll_length = unroll_length
     self._buffer = buffer
     self._predictor = predictor
-    self._rnn_state = predictor.initial_state(None)
+    self._rnn_state: RNNState = None
     self._logger = logger
     self._unroll_steps = 0
     self._trajectory: List[Transition] = []

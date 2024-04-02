@@ -6,11 +6,7 @@ import numpy as np
 from moss.network import CommonNet
 from moss.network.action import ActionSpec, DiscreteAction
 from moss.network.feature import FeatureSet, FeatureSpec, ImageFeature
-from moss.network.feature.encoder import (
-  Conv2DConfig,
-  ImageFeatureEncoder,
-  ResnetConfig,
-)
+from moss.network.feature.encoder import Conv2DConfig, ImageEncoder, ResnetConfig
 from moss.network.torso import DenseTorso
 from moss.network.value import DenseValue
 
@@ -20,9 +16,9 @@ resnet_default_config = [
   ResnetConfig(32, 2),
 ]
 conv2d_default_config = [
-  Conv2DConfig(32, 8, 4, "VALID"),
-  Conv2DConfig(64, 4, 2, "VALID"),
-  Conv2DConfig(64, 3, 1, "VALID"),
+  Conv2DConfig(32, [8, 8], [4, 4], "VALID"),
+  Conv2DConfig(64, [4, 4], [2, 2], "VALID"),
+  Conv2DConfig(64, [3, 3], [1, 1], "VALID"),
 ]
 
 
@@ -45,9 +41,9 @@ def network_maker(
           lambda x: x / 255.
         )
     },
-    encoder_net=ImageFeatureEncoder(
-      "frame_encoder",
-      data_format,
+    encoder=ImageEncoder(
+      name="frame_encoder",
+      data_format=data_format,
       use_resnet=use_resnet,
       resnet_config=resnet_default_config,
       conv2d_config=conv2d_default_config,
@@ -65,6 +61,6 @@ def network_maker(
   return CommonNet(
     feature_spec=FeatureSpec(feature_sets),
     action_spec=ActionSpec(actions),
-    torso_net=DenseTorso("torso", [512], use_orthogonal),
-    value_net=DenseValue("value", [512, 32], use_orthogonal),
+    torso=DenseTorso([512], use_orthogonal),
+    value=DenseValue([512, 32], use_orthogonal),
   )

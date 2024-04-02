@@ -10,10 +10,14 @@ from moss.types import Array, SpecArray
 class Action(abc.ABC):
   """Action."""
 
+  @abc.abstractmethod
+  def decoder(self, inputs: Array, mask: Optional[Array] = None) -> Array:
+    """Action decoder."""
+
   @property
   @abc.abstractmethod
-  def name(self) -> SpecArray:
-    """Get action name."""
+  def name(self) -> str:
+    """Action name."""
 
   @property
   @abc.abstractmethod
@@ -21,13 +25,9 @@ class Action(abc.ABC):
     """Action spec."""
 
   @abc.abstractmethod
-  def policy_net(self, inputs: Array, mask: Optional[Array] = None) -> Array:
-    """Action policy network."""
-
-  @abc.abstractmethod
-  def distribution(cls, *args: Any, **kwargs: Any) -> DistributionLike:
+  def distribution(self, *args: Any, **kwargs: Any) -> DistributionLike:
     """Action distribution."""
 
   @abc.abstractmethod
-  def sample(cls, *args: Any, **kwargs: Any) -> Any:
+  def sample(self, *args: Any, **kwargs: Any) -> Any:
     """Sample action."""

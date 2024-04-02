@@ -93,10 +93,6 @@ class BasePredictor(Predictor):
     )
     return batch_input_dict, batch_rnn_state, futures
 
-  def initial_state(self, batch_size: Optional[int]) -> Any:
-    """Get initial state."""
-    return self._network.initial_state(batch_size)
-
   def update_params(self, params: Params) -> None:
     """Update params by Learner."""
     with self._params_mutex:

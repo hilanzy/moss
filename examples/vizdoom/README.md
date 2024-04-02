@@ -18,7 +18,7 @@ pip install vizdoom
 Training by executing following command:
 
 ```bash
-python examples/vizdoom/impala.py --map_id D1_basic
+python impala.py --map_id D1_basic
 ```
 
 **Reward curve**

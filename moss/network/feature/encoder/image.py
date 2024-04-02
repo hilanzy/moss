@@ -2,22 +2,23 @@
 import collections
 from typing import Any, List, Optional
 
-import haiku as hk
+import flax.linen as nn
 import jax
 
-from moss.network.base import Module
+from moss.network.feature.encoder.base import FeatureEncoder
 from moss.network.layers import ResidualBlock
+from moss.network.utils import Flatten
 from moss.types import Array
 
 ResnetConfig = collections.namedtuple(
   "ResnetConfig", ["num_channels", "num_blocks"]
 )
 Conv2DConfig = collections.namedtuple(
-  "Conv2DConfig", ["output_channels", "kernel", "stride", "padding"]
+  "Conv2DConfig", ["num_channels", "kernel", "strides", "padding"]
 )
 
 
-class ImageFeatureEncoder(Module):
+class ImageEncoder(FeatureEncoder):
   """Image featrue encoder."""
 
   def __init__(
@@ -42,7 +43,7 @@ class ImageFeatureEncoder(Module):
         kernel, stride, padding) of every Conv2D layer.
       use_orthogonal: Whether use orthogonal to initialization params weight.
     """
-    super().__init__(name=name)
+    self._name = name
     self._data_format = data_format
     self._use_resnet = use_resnet
     self._resnet_config = resnet_config
@@ -57,9 +58,13 @@ class ImageFeatureEncoder(Module):
       )
     self._use_orthogonal = use_orthogonal
 
-  def __call__(self, inputs: Array) -> Any:
+  def __call__(self, inputs: Array) -> Array:
     """Call."""
-    w_init = hk.initializers.Orthogonal() if self._use_orthogonal else None
+    assert self._data_format == "NHWC", ("Only support `NHWC` data format.")
+    init_kwargs = {}
+    if self._use_orthogonal:
+      init_kwargs["kernel_init"] = nn.initializers.orthogonal()
+
     if self._use_resnet:
       if self._resnet_config is None:
         raise ValueError(
@@ -67,47 +72,46 @@ class ImageFeatureEncoder(Module):
         )
       encoder_out = inputs
       for i, (num_channels, num_blocks) in enumerate(self._resnet_config):
-        conv = hk.Conv2D(
+        conv = nn.Conv(
           num_channels,
-          kernel_shape=[3, 3],
-          stride=[1, 1],
-          w_init=w_init,
+          kernel_size=[3, 3],
+          strides=[1, 1],
           padding="SAME",
-          data_format=self._data_format
+          **init_kwargs,
         )
-        encoder_out = conv(encoder_out)  # type: ignore
-        encoder_out = hk.max_pool(
+        encoder_out = conv(encoder_out)
+        encoder_out = nn.max_pool(
           encoder_out,
-          window_shape=[1, 3, 3, 1],
-          strides=[1, 2, 2, 1],
-          padding="SAME"
+          window_shape=(3, 3),
+          strides=(2, 2),
+          padding="SAME",
         )
         for j in range(num_blocks):
           block = ResidualBlock(
-            num_channels, "residual_{}_{}".format(i, j), self._data_format,
-            self._use_orthogonal
+            name="residual_{}_{}".format(i, j),
+            num_channels=num_channels,
+            use_orthogonal=self._use_orthogonal,
           )
           encoder_out = block(encoder_out)
-      encoder_out = hk.Flatten()(encoder_out)
+      encoder_out = Flatten()(encoder_out)
     else:
       if self._conv2d_config is None:
         raise ValueError(
           "argument `conv2d_config` must set when use_resnet is `False`."
         )
       layers: List[Any] = []
-      for num_channels, kernel, stride, padding in self._conv2d_config:
+      for num_channels, kernel, strides, padding in self._conv2d_config:
         layers.append(
-          hk.Conv2D(
+          nn.Conv(
             num_channels,
-            kernel,
-            stride,
+            kernel_size=kernel,
+            strides=strides,
             padding=padding,
-            w_init=w_init,
-            data_format=self._data_format
+            **init_kwargs,
           )
         )
         layers.append(jax.nn.relu)
-      layers.append(hk.Flatten())
-      encoder = hk.Sequential(layers)
+      layers.append(Flatten())
+      encoder = nn.Sequential(layers)
       encoder_out = encoder(inputs)
     return encoder_out
