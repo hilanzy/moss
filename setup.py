@@ -54,7 +54,7 @@ def get_extras_require() -> Dict[str, List[str]]:
         "flake8-bugbear",
         "yapf",
         "isort",
-        "mypy",
+        "mypy==1.0",
         "pydocstyle",
         "doc8",
         "pyenchant",

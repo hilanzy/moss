@@ -10,7 +10,7 @@ from moss.types import TimeStep
 try:
   import ray
 except ImportError:
-  ray = None  # type: ignore
+  ray = None
 
 AgentID = Any
 
@@ -69,9 +69,8 @@ class RayEnvWorker(BaseEnvWorker):
       raise ImportError(
         "Please install ray to support RayVectorEnv: pip install ray"
       )
-    self._env = ray.remote(num_cpus=0)(DummyEnvWorker).remote(
-      env_maker, **kwargs
-    )  # type: ignore
+    self._env =\
+      ray.remote(num_cpus=0)(DummyEnvWorker).remote(env_maker, **kwargs)
 
   def reset(self) -> Dict[AgentID, TimeStep]:
     """Call ray env worker reset remote."""
