@@ -11,29 +11,31 @@ def get_version() -> str:
 
 
 def get_install_requires() -> List[str]:
-  tensorflow = [
-    "tensorflow==2.8.0",
-    "tensorflow_probability==0.15.0",
-    "tensorflow_datasets==4.6.0",
-    "dm-reverb==0.7.2",
+  launchpad = [
+    "tensorflow==2.8.1",
+    "dm-reverb==0.12.0",
     "dm-launchpad==0.5.2",
   ]
 
   jax_requirements = [
-    "jax",
+    "jax==0.4.20",
+    "jaxlib==0.4.20",
+    "flax==0.7.5",
     "chex",
-    "dm-haiku",
-    "flax",
     "optax",
     "rlax",
-  ] + tensorflow
+  ] + launchpad
 
   requirements = [
     "absl-py",
+    "envpool",
     "dm-env",
     "dm-tree",
     "numpy",
     "pillow",
+    "pygame",
+    "pettingzoo[all]",
+    "tensorboardX",
     "tqdm",
     "typing-extensions",
   ] + jax_requirements
@@ -46,13 +48,13 @@ def get_extras_require() -> Dict[str, List[str]]:
       [
         "sphinx<8",
         "sphinx_rtd_theme",
-        "jinja2<3.2",
+        "jinja2",
         "sphinxcontrib-bibtex",
         "flake8",
         "flake8-bugbear",
         "yapf",
         "isort",
-        "mypy",
+        "mypy==1.0",
         "pydocstyle",
         "doc8",
         "pyenchant",
@@ -64,10 +66,11 @@ def get_extras_require() -> Dict[str, List[str]]:
 
 
 setup(
-  name="moss",
+  name="moss-rl",
   version=get_version(),
   description="A Python library for Reinforcement Learning.",
   long_description=open("README.md", encoding="utf8").read(),
+  long_description_content_type="text/markdown",
   author="lanzhiyi",
   author_email="lanzhiy.mail@qq.com",
   url="https://github.com/hilanzy/moss",
@@ -88,6 +91,8 @@ setup(
     # Pick your license as you wish (should match "license" above)
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
   ],
   keywords="reinforcement-learning python machine learning",
 )

@@ -1,29 +1,32 @@
 """Atati impala example."""
 import os
-from typing import Any, Callable, List
+from functools import partial
+from typing import Any, Callable
 
 import envpool
-import jax
 import launchpad as lp
 from absl import app, flags, logging
+from agent import AtariAgent
 from launchpad.nodes.dereference import Deferred
 from launchpad.nodes.python.local_multi_processing import PythonProcess
+from network import network_maker
 
-from moss.actor.vector import VectorActor
-from moss.agent.atari import AtariAgent
-from moss.buffer.queue import QueueBuffer
-from moss.env import EnvpoolVectorEnv, TimeStep
-from moss.learner.impala import ImpalaLearner
-from moss.network.base import SimpleNet
-from moss.predictor.base import BasePredictor
+from moss.actor import GenericActor
+from moss.buffer import QueueBuffer
+from moss.env import EnvpoolVectorEnv
+from moss.learner import ImpalaLearner
+from moss.predictor import BasePredictor
 from moss.types import Environment
-from moss.utils.loggers import experiment_logger_factory
+from moss.utils.loggers import Logger, experiment_logger_factory
 from moss.utils.paths import get_unique_id
 
 flags.DEFINE_string("task_id", "Pong-v5", "Task name.")
 flags.DEFINE_integer("stack_num", 1, "Stack nums.")
 flags.DEFINE_integer("num_envs", 32, "Num of envs.")
 flags.DEFINE_integer("num_threads", 6, "Num threads of envs.")
+flags.DEFINE_bool(
+  "use_resnet", False, "Use resnet or conv2d encoder for atari image."
+)
 flags.DEFINE_bool(
   "use_orthogonal", True, "Use orthogonal to initialization params weight."
 )
@@ -62,60 +65,35 @@ def make_lp_program() -> Any:
   stack_num = FLAGS.stack_num
   num_envs = FLAGS.num_envs
   num_threads = FLAGS.num_threads
+  unroll_len = FLAGS.unroll_len
 
   dummy_env: Environment = envpool.make_dm(
     task_id, stack_num=stack_num, num_envs=1
   )
-  obs_sepc: Any = dummy_env.observation_spec()
-  action_sepc: Any = dummy_env.action_spec()
+  obs_spec: Any = dummy_env.observation_spec()
+  action_spec: Any = dummy_env.action_spec()
+  use_resnet = FLAGS.use_resnet
   use_orthogonal = FLAGS.use_orthogonal
 
   logging.info(f"Task id: {task_id}")
-  logging.info(f"Observation shape: {obs_sepc.obs.shape}")
-  logging.info(f"Action space: {action_sepc.num_values}")
-
-  def network_maker() -> SimpleNet:
-    """Network maker."""
-    return SimpleNet(obs_sepc, action_sepc, use_orthogonal)
+  logging.info(f"Observation shape: {obs_spec.obs.shape}")
+  logging.info(f"Action space: {action_spec.num_values}")
 
   def env_maker() -> EnvpoolVectorEnv:
     """Env maker."""
+    return EnvpoolVectorEnv(
+      task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
+    )
 
-    def env_fn() -> Any:
-      """Env functuion."""
-      return envpool.make_dm(
-        task_id, stack_num=stack_num, num_envs=num_envs, num_threads=num_threads
-      )
-
-    def process_fn(timesteps: List) -> Any:
-      """Timesteps process function."""
-
-      def split_batch_timestep(batch: TimeStep) -> List[TimeStep]:
-        """Split batch timestep by env id."""
-        size = batch.step_type.size
-        timesteps = [
-          jax.tree_util.tree_map(lambda x: x[i], batch)  # noqa: B023
-          for i in range(size)
-        ]
-        return timesteps
-
-      timesteps = split_batch_timestep(timesteps[0])
-      new_timesteps = []
-      for i, timestep in enumerate(timesteps):
-        new_timesteps.append(TimeStep(0, i, None, *timestep))
-      return new_timesteps
-
-    return EnvpoolVectorEnv(env_fn, process_fn)
-
-  def agent_maker(predictor: BasePredictor) -> Callable:
+  def agent_maker(buffer: QueueBuffer, predictor: BasePredictor) -> Callable:
     """Agent maker."""
 
-    def agent_fn(player_info: Any) -> AtariAgent:
-      """Retuen a agent."""
-      del player_info
-      return AtariAgent(predictor)
+    def agent_wrapper(timestep: Any, logger: Logger) -> AtariAgent:
+      """Return a agent."""
+      del timestep
+      return AtariAgent(unroll_len, buffer, predictor, logger)
 
-    return agent_fn
+    return agent_wrapper
 
   logger_fn = experiment_logger_factory(
     project=task_id, uid=exp_uid, time_delta=2.0, print_fn=logging.info
@@ -136,7 +114,10 @@ def make_lp_program() -> Any:
       predictor_node = lp.CourierNode(
         BasePredictor,
         FLAGS.predict_batch_size,
-        network_maker,
+        partial(
+          network_maker, obs_spec, action_spec, "NHWC", use_resnet,
+          use_orthogonal
+        ),
         logger_fn,
       )
       predictor = program.add_node(predictor_node)
@@ -145,11 +126,9 @@ def make_lp_program() -> Any:
   with program.group("actor"):
     for i in range(FLAGS.num_actors):
       actor_node = lp.CourierNode(
-        VectorActor,
-        buffer,
-        Deferred(agent_maker, predictors[i % FLAGS.num_predictors]),
+        GenericActor,
+        Deferred(agent_maker, buffer, predictors[i % FLAGS.num_predictors]),
         env_maker,
-        FLAGS.unroll_len,
         logger_fn,
       )
       program.add_node(actor_node)
@@ -160,20 +139,22 @@ def make_lp_program() -> Any:
       ImpalaLearner,
       buffer,
       predictors,
-      network_maker,
+      partial(
+        network_maker, obs_spec, action_spec, "NHWC", use_resnet, use_orthogonal
+      ),
       logger_fn,
-      FLAGS.training_batch_size,
-      FLAGS.save_interval,
-      save_path,
-      FLAGS.model_path,
-      FLAGS.publish_interval,
-      FLAGS.learning_rate,
-      FLAGS.gamma,
-      FLAGS.gae_lambda,
-      FLAGS.rho_clip,
-      FLAGS.pg_rho_clip,
-      FLAGS.critic_coef,
-      FLAGS.entropy_coef,
+      batch_size=FLAGS.training_batch_size,
+      save_interval=FLAGS.save_interval,
+      save_path=save_path,
+      model_path=FLAGS.model_path,
+      publish_interval=FLAGS.publish_interval,
+      learning_rate=FLAGS.learning_rate,
+      discount=FLAGS.gamma,
+      gae_lambda=FLAGS.gae_lambda,
+      clip_rho_threshold=FLAGS.rho_clip,
+      clip_pg_rho_threshold=FLAGS.pg_rho_clip,
+      critic_coef=FLAGS.critic_coef,
+      entropy_coef=FLAGS.entropy_coef,
     )
     program.add_node(learner_node)
   return program
@@ -193,8 +174,6 @@ def main(_):
     "learner":
       PythonProcess(
         env={
-          # LD_LIBRARY_PATH for cudatoolkit install from conda.
-          "LD_LIBRARY_PATH": "${HOME}/miniconda3/envs/moss/lib",
           "CUDA_VISIBLE_DEVICES": "0",
           "XLA_PYTHON_CLIENT_PREALLOCATE": "false"
         }

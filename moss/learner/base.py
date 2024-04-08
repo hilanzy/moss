@@ -10,7 +10,8 @@ import jax
 import optax
 from absl import logging
 
-from moss.core import Buffer, Learner, Network, Predictor
+from moss.core import Buffer, Learner, Predictor
+from moss.network import Network
 from moss.types import Array, LoggingData, OptState, Params, Transition
 from moss.utils.loggers import Logger
 
@@ -28,6 +29,8 @@ class BaseLearner(Learner):
     save_interval: int,
     save_path: str,
     model_path: Optional[str] = None,
+    gradient_clip: Optional[float] = None,
+    data_reuse: Optional[int] = None,
     publish_interval: int = 1,
     learning_rate: float = 5e-4,
     seed: int = 42,
@@ -41,19 +44,24 @@ class BaseLearner(Learner):
     if model_path is not None:
       self._params = self._load_model(model_path)
     else:
-      self._params = self._init_params(seed)
+      self._params = self._initial_params(seed)
     self._publish_params(self._params)
     self._optmizer = optax.rmsprop(learning_rate, decay=0.99, eps=1e-7)
+    if gradient_clip is not None:
+      self._optmizer = optax.chain(
+        optax.clip_by_global_norm(gradient_clip), self._optmizer
+      )
     self._opt_state = self._optmizer.init(self._params)
     self._save_intelval = save_interval
     self._save_fn = partial(self._save_model, save_path=save_path)
+    self._data_reuse = data_reuse or 1
     self._publish_interval = publish_interval
     logging.info(jax.devices())
 
-  def _init_params(self, seed: int) -> Params:
+  def _initial_params(self, seed: int) -> Params:
     """Init params and update to predictor."""
     rng = jax.random.PRNGKey(seed)
-    params = self._network.init_params(rng)
+    params = self._network.initial_params(rng)
     return params
 
   def _publish_params(self, params: Params) -> None:
@@ -97,15 +105,17 @@ class BaseLearner(Learner):
     while True:
       logs = {}
       start_sample_time = time.time()
-      tarinig_data = self._buffer.sample(self._batch_size)
+      training_data = self._buffer.sample(self._batch_size)
       sample_data_time = time.time() - start_sample_time
 
       start_training_time = time.time()
-      self._params, self._opt_state, metrics = self._train_step(
-        self._params, self._opt_state, tarinig_data
-      )
-      train_steps += 1
-      training_step_time = time.time() - start_training_time
+      for _ in range(self._data_reuse):
+        self._params, self._opt_state, metrics = self._train_step(
+          self._params, self._opt_state, training_data
+        )
+        train_steps += 1
+        self._logger.write(metrics)
+      training_step_time = (time.time() - start_training_time) / self._data_reuse
 
       publish_params_start = time.time()
       if train_steps % self._publish_interval == 0:
@@ -121,7 +131,6 @@ class BaseLearner(Learner):
           "time/training step": training_step_time,
           "time/publish params": publish_params_time,
           "train steps": train_steps,
-          **metrics,
         }
       )
       self._logger.write(logs)

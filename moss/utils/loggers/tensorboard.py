@@ -11,26 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utilities for logging to a tf.summary."""
+"""Utilities for logging to a TensorboardX SummaryWriter."""
 
+import datetime
 import time
 from typing import Optional
 
-import tensorflow as tf
 from absl import logging
+from tensorboardX import SummaryWriter
 
 from moss.utils.loggers import base
 
 
 def _format_key(key: str) -> str:
-  """Internal function for formatting keys in Tensorboard format."""
-  return key.title().replace('_', '')
+  """Internal function for formatting keys in TensorboardX format."""
+  return key.title().replace('_', '').replace(' ', '')
 
 
-class TFSummaryLogger(base.Logger):
-  """Logs to a tf.summary created in a given logdir.
+class TBXSummaryLogger(base.Logger):
+  """Logs to a TensorboardX SummaryWriter created in a given logdir.
 
-  If multiple TFSummaryLogger are created with the same logdir, results will be
+  If multiple TBXSummaryLogger are created with the same logdir, results will be
   categorized by labels.
   """
 
@@ -47,7 +48,8 @@ class TFSummaryLogger(base.Logger):
     self._time = time.time()
     self.label = label
     self._iter = 0
-    self.summary = tf.summary.create_file_writer(logdir)
+    filename_suffix = f".{datetime.datetime.now().strftime('%f')}"
+    self.summary = SummaryWriter(logdir, filename_suffix=filename_suffix)
     self._steps_key = steps_key
 
   def write(self, values: base.LoggingData) -> None:
@@ -58,14 +60,13 @@ class TFSummaryLogger(base.Logger):
 
     step = values[self._steps_key] if self._steps_key is not None else self._iter
 
-    with self.summary.as_default():
-      # TODO(b/159065169): Remove this suppression once the bug is resolved.
-      # pytype: disable=unsupported-operands
-      for key in values.keys() - [self._steps_key]:
-        # pytype: enable=unsupported-operands
-        tf.summary.scalar(
-          f'{self.label}/{_format_key(key)}', data=values[key], step=step
-        )
+    # TODO(b/159065169): Remove this suppression once the bug is resolved.
+    # pytype: disable=unsupported-operands
+    for key in values.keys() - [self._steps_key]:
+      # pytype: enable=unsupported-operands
+      self.summary.add_scalar(
+        f'{self.label}/{_format_key(key)}', values[key], step
+      )
     self._iter += 1
 
   def close(self) -> None:

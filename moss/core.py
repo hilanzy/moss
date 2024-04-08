@@ -1,17 +1,15 @@
 """Core interface."""
 import abc
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 
 from moss.env.base import TimeStep
 from moss.types import (
-  AgentState,
   Array,
-  KeyArray,
   LoggingData,
-  NetOutput,
   OptState,
   Params,
   Reward,
+  RNNState,
   Trajectory,
   Transition,
 )
@@ -37,12 +35,36 @@ class Agent(abc.ABC):
     """Reset agent."""
 
   @abc.abstractmethod
-  def step(self, timestep: TimeStep) -> Tuple[AgentState, Reward]:
-    """Take step."""
+  def step(self, timestep: TimeStep) -> Tuple[Dict, Reward]:
+    """Trans env timestep into network input dict.
+
+    Args:
+      timestep: Env timestep.
+
+    Returns:
+      input_dict: The input dict for network.
+        input keys:
+          `AGENT_STATE`: the agent state for network.
+          `GLOBAL_STATE`: the global state for network(CTDE).
+          `MASK`: the action mask.
+      reward: Calculate step rewards.
+    """
 
   @abc.abstractmethod
-  def take_action(self, state: AgentState) -> Any:
+  def inference(self, input_dict: Dict) -> Any:
+    """Inference."""
+
+  @abc.abstractmethod
+  def result(self, idx: int) -> Any:
+    """Get inference result async."""
+
+  @abc.abstractmethod
+  def take_action(self, action: Dict[str, Any]) -> Any:
     """Take action."""
+
+  @abc.abstractmethod
+  def add(self, transition: Transition) -> None:
+    """Add transition to buffer."""
 
 
 class Buffer(abc.ABC):
@@ -83,19 +105,6 @@ class Learner(Worker):
     """Save model."""
 
 
-class Network(abc.ABC):
-  """Neural network interface."""
-
-  @abc.abstractmethod
-  def init_params(self, rng: KeyArray) -> Params:
-    """Init network's params."""
-
-  @abc.abstractmethod
-  def forward(self, params: Params, state: AgentState,
-              rng: KeyArray) -> Tuple[Array, NetOutput]:
-    """Network forward."""
-
-
 class Predictor(Worker):
   """Predictor interface."""
 
@@ -104,7 +113,7 @@ class Predictor(Worker):
     """Update params."""
 
   @abc.abstractmethod
-  def inference(self, state: AgentState) -> Any:
+  def inference(self, input_dict: Dict, rnn_state: RNNState) -> Any:
     """Inference."""
 
   @abc.abstractmethod
